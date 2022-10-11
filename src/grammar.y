@@ -16,7 +16,9 @@ extern char * yytext;
 
 %token <sValue> IDENTIFIER
 %token <iValue> INTEGER_LITERAL
-%token ASSIGN_OP PLUS_OP MULT_OP SEMICOLON LEFT_PAREN RIGHT_PAREN
+%token '=' ';'
+%left '+'
+%left '*'
 
 %start prog
 
@@ -31,14 +33,14 @@ stmlist : stm						              		{}
 		| stmlist stm             				    {}
 	  ;
 
-stm : IDENTIFIER ASSIGN_OP exp SEMICOLON  {}
+stm : IDENTIFIER '=' exp ';'  {}
 	  ;
 
-exp : exp PLUS_OP term                    {}
+exp : exp '+' term                    {}
     | term                                {}
     ;
 
-term : term MULT_OP factor                {}
+term : term '*' factor                {}
      | factor                             {}
      ;
 
