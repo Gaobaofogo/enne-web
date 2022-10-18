@@ -5,17 +5,65 @@
   extern void yyerror (const char *msg);
 %}
 
+digit [0-9]
+id [A-Za-z][A-Za-z0-9_]*
+
 %%
 
 [ \t\n]               ;
-[0-9]+           	    {yylval.iValue = atoi(yytext); 
-                       return INTEGER_LITERAL;}
-";"      				      {return(';');}
-"+"                   {return('+');}
-"*"                   {return('*');}
-"="					          {return '=';}
-[a-zA-Z][a-zA-Z0-9]*	{yylval.sValue = strdup(yytext); 
+
+func                  { return FUNC;}
+var                   { return VAR;}
+for                   { return FOR;}
+while                 { return WHILE;}
+struct                { return STRUCT;}
+return                { return RETURN;}
+break                 { return BREAK;}
+continue              { return CONTINUE;}
+if                    { return IF;}
+else                  { return ELSE;}
+
+\"([^\\\"]|\\.)*\"         { return STRING_LITERAL; }
+(\+|\-)?{digit}+           { yylval.iValue = atoi(yytext); 
+                             return INTEGER_LITERAL; }
+(\+|\-)?{digit}+\.{digit}+ { return DOUBLE_LITERAL; }
+(true|false)               { return BOOL_LITERAL; }
+
+\+                         { return '+'; }
+\-                         { return '-'; }
+\*                         { return '*'; }
+\/                         { return '/'; }
+\*\*                       { return EXP_OP; }
+==                         { return EQ_OP; }
+\!=                        { return DIFF_OP; }
+\>                         { return '>'; }
+\>=                        { return GTE_OP; }
+\<                         { return '<'; }
+\<=                        { return LTE_OP; }
+\+\+                       { return CONCAT_OP; }
+\&                         { return '&'; }
+\|\|                       { return OR_OP; }
+\&&                        { return AND_OP; }
+\=                         { return '='; }
+\+=                        { return PLUS_ASSIGN_OP; }
+\-=                        { return MINUS_ASSIGN_OP; }
+\*=                        { return MULT_ASSIGN_OP; }
+\/=                        { return DIV_ASSIGN_OP; }
+\!                         { return '!'; }
+
+{id}	{yylval.sValue = strdup(yytext); 
                        return IDENTIFIER;}
+\(                         { return '('; }
+\)                         { return ')'; }
+\[                         { return '['; }
+\]                         { return ']'; }
+\{                         { return '{'; }
+\}                         { return '}'; }
+"."                        { return '.'; }
+","                        { return ','; }
+":"                        { return ':'; }
+";"                        { return ';'; }
+\/\/.*                     {;} /*Comentario*/
 .                      {yyerror("invalid character");}
 
 %%

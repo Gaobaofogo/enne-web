@@ -16,38 +16,45 @@ extern char * yytext;
 
 %token <sValue> IDENTIFIER
 %token <iValue> INTEGER_LITERAL
-%token '=' ';'
-%left '+'
-%left '*'
+%token FUNC VAR FOR WHILE STRUCT RETURN BREAK CONTINUE IF ELSE
+%token STRING_LITERAL INTEGER_LITERAL DOUBLE_LITERAL BOOL_LITERAL
+%token CONCAT_OP '&' OR_OP AND_OP '=' PLUS_ASSIGN_OP MINUS_ASSIGN_OP MULT_ASSIGN_OP DIV_ASSIGN_OP '!'
+%nonassoc '>' GTE_OP '<' LTE_OP EQ_OP DIFF_OP
+%token '(' ')' '[' ']' '{' '}' '.' ',' ':' ';'
+%left '+' '-'
+%left '*' '/'
+%left U_MINUS_OP U_NOT_OP
+%right EXP_OP
 
 %start prog
 
-%type <sValue> stm
-
 %% /* Inicio da segunda seção, onde colocamos as regras BNF */
 
-prog : stmlist                            {} 
-	 ;
+prog : dec                            {} 
+     | prog dec
+	   ;
 
-stmlist : stm						              		{}
-		| stmlist stm             				    {}
-	  ;
-
-stm : IDENTIFIER '=' exp ';'  {}
-	  ;
-
-exp : exp '+' term                    {}
-    | term                                {}
+dec : func_declaration {}
+    | var_dec          {}
     ;
 
-term : term '*' factor                {}
-     | factor                             {}
+func_declaration : FUNC IDENTIFIER '(' args ')' '{' '}' {}
+                 ;
+
+args : {}
+     | args_specifier
      ;
 
-factor : IDENTIFIER                       {}
-       | INTEGER_LITERAL                  {}
-       ;
-	
+args_specifier : IDENTIFIER {}
+               | args_specifier ',' IDENTIFIER
+               ;
+
+var_dec : VAR init_declarator ';' {}
+        ;
+
+init_declarator : IDENTIFIER {}
+                | init_declarator '[' ']' {} // Tem que botar uma expressão aí no meio
+                ;
 
 %% /* Fim da segunda seção */
 
