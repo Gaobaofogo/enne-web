@@ -44,6 +44,8 @@ else                  { return ELSE;}
 \&                         { return '&'; }
 \|\|                       { return OR_OP; }
 \&&                        { return AND_OP; }
+and                        { return AND_NAMED_OP; }
+or                         { return OR_NAMED_OP; }
 \=                         { return '='; }
 \+=                        { return PLUS_ASSIGN_OP; }
 \-=                        { return MINUS_ASSIGN_OP; }

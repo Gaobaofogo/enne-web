@@ -1,6 +1,6 @@
 
 all:
-	yacc -d src/grammar.y -o bin/y.tab.c
+	yacc -d -v src/grammar.y -o bin/y.tab.c
 	lex -o bin/lex.yy.c src/lexer.l
 	gcc bin/lex.yy.c bin/y.tab.c -o bin/enne-web
 
