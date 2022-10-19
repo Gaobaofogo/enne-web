@@ -21,7 +21,10 @@ return                { return RETURN;}
 break                 { return BREAK;}
 continue              { return CONTINUE;}
 if                    { return IF;}
+elif                  { return ELIF; }
 else                  { return ELSE;}
+read                  { return READ;}
+print                 { return PRINT;}
 
 \"([^\\\"]|\\.)*\"         { return STRING_LITERAL; }
 (\+|\-)?{digit}+           { yylval.iValue = atoi(yytext); 

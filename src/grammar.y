@@ -16,7 +16,7 @@ extern char * yytext;
 
 %token <sValue> IDENTIFIER
 %token <iValue> INTEGER_LITERAL
-%token FUNC VAR FOR WHILE STRUCT RETURN BREAK CONTINUE IF ELSE
+%token FUNC VAR FOR WHILE STRUCT RETURN BREAK CONTINUE IF ELIF ELSE READ PRINT
 %token STRING_LITERAL DOUBLE_LITERAL BOOL_LITERAL
 %token '&' '=' PLUS_ASSIGN_OP MINUS_ASSIGN_OP MULT_ASSIGN_OP DIV_ASSIGN_OP '!'
 %left OR_OP OR_NAMED_OP
@@ -40,34 +40,91 @@ decs : {}
      | dec decs {}
      ;
 
-cmd_simp :
-          dec {}
-         | cond {}
-         /* | loop {}
-         | assignment ';' {}
-         | io ';' {}
-         | return return {}
-         | exp ';' {}
-         | goto identifier ';' {}
-         | break ';' {}
-         | continue ';'
-         ; */
-         
-if : IF '(' exp ')' '{'  elseif else '}' {} // BLock
+cmd : dec {}
+    | if {}
+    | loop {}
+    | assignment ';' {}
+    | io ';' {}
+    | RETURN return {}
+    | exp ';' {}
+    | BREAK ';' {}
+    | CONTINUE ';'
+    ; 
+
+
+io : READ '(' assignable ')' {}
+   | PRINT '(' exp ')' {}
+   ;
+
+return : ';' {}
+       | exp ';' {}
+       ;
+
+block : {}
+      | block cmd {}
+      ;
+
+if : IF '(' exp ')' '{' block '}' elseif else {}
    ;
 
 elseif : {}
-       | ELIF '(' exp ')' '{' block elseif // TODO: block 
+       | ELIF '(' exp ')' '{' block '}' elseif {}
        ;
 
-else : ELSE  {} // Block
+else : ELSE '{' block '}' {}
      | {}
      ;
 
-dec : FUNC IDENTIFIER '(' args ')' '{' '}' {}
-    | VAR init_declarator ';' {}
-    | VAR init_declarator '=' exp ';' {}
+loop : while {}
+     | for {}
+     ;
+
+while : WHILE '(' exp ')' '{' block '}' {}
+      ;
+
+for : FOR '(' for_left for_middle for_right ')' '{' block '}' {}
     ;
+
+for_left : var_dec {}
+         | assignment ';' {}
+         | ';' {}
+         ;
+
+for_middle : exp ';' {}
+           | ';' {}
+           ;
+
+for_right : exp {}
+          | assignment {}
+          | {}
+          ;
+
+assignment : assignable '=' exp {}
+           | assignable PLUS_ASSIGN_OP exp {}
+           | assignable MINUS_ASSIGN_OP exp {}
+           | assignable DIV_ASSIGN_OP exp {}
+           | assignable MULT_ASSIGN_OP exp {}
+           ;
+
+dec : FUNC IDENTIFIER '(' args ')' '{' block '}' {}
+    | STRUCT IDENTIFIER '{' struct_fields '}'
+    | var_dec {}
+    ;
+
+struct_fields : {}
+       | field struct_fields {}
+       ;
+
+field : IDENTIFIER ';' {}
+      ;
+
+var_dec : VAR init_declarator_list ';' {}
+        | VAR init_declarator '=' exp ';' {}
+        ;
+
+init_declarator_list : init_declarator {}
+                     | init_declarator ',' init_declarator_list {}
+                     ;
 
 args : {}
      | args_specifier
@@ -78,7 +135,7 @@ args_specifier : IDENTIFIER {}
                ;
 
 init_declarator : IDENTIFIER {}
-                | init_declarator '[' ']' {} // Tem que botar uma expressão aí no meio
+                | init_declarator '[' exp ']' {}
                 ;
 
 exp : '-' exp                         %prec U_MINUS_OP {}
@@ -131,9 +188,21 @@ literal : INTEGER_LITERAL {}
         | DOUBLE_LITERAL {}
         | STRING_LITERAL {}
         | BOOL_LITERAL {}
-        /* | array_literal {}
-        | struct_literal {} */
+        | array_literal {}
+        /* | struct_literal {} */
         ;
+
+array_literal : '[' array_list ']' {}
+              ;
+
+array_list : {}
+           | exp array_list_remaining {}
+           ;
+
+array_list_remaining : {}
+                     | ',' exp array_list_remaining {}
+                     ;
+
 
 %% /* Fim da segunda seção */
 
