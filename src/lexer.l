@@ -25,6 +25,8 @@ elif                  { return ELIF; }
 else                  { return ELSE;}
 read                  { return READ;}
 print                 { return PRINT;}
+int_to_string         { return INT_TO_STRING;}
+float_to_string       { return FLOAT_TO_STRING;}
 
 \"([^\\\"]|\\.)*\"         { return STRING_LITERAL; }
 (\+|\-)?{digit}+           { yylval.iValue = atoi(yytext); 

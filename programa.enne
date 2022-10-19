@@ -5,7 +5,7 @@ func merge_sort(arr, low, high)
         //divide the array at mid and sort independently using merge sort
         mid=(low+high)/2;
         merge_sort(arr,low,mid);
-          merge_sort(arr,mid + 1,high);
+        merge_sort(arr,mid + 1,high);
         //merge or conquer sorted arrays
         merge(arr,low,high,mid);
     }
@@ -39,7 +39,7 @@ func merge(arr, low, high, mid)
         k += 1;
         j += 1;
     }
-    for (i = low; i < k; i++)  {
+    for (i = low; i < k; i += 1)  {
         arr[i] = c[i];
     }
 }
@@ -50,11 +50,14 @@ func main()
     var myarray[30], num;
     print("Enter number of elements to be sorted:");
     read(num);
-    for (var i = 0; i < num; i += 1) { read(myarray[i]);
+    print("Enter " ++ int_to_string(num) ++ "elements to be sorted.");
+    for (var i = 0; i < num; i += 1) {
+        read(myarray[i]);
     }
-    merge_sort(myarray, 0, num-1);
+    merge_sort(myarray, 0, num - 1);
     print("Sorted array\n");
     for (var i = 0; i < num; i += 1)
     {
+        print(int_to_string(myarray[i]) ++ "\t");
     }
 }

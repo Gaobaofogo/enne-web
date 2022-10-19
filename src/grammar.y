@@ -16,7 +16,7 @@ extern char * yytext;
 
 %token <sValue> IDENTIFIER
 %token <iValue> INTEGER_LITERAL
-%token FUNC VAR FOR WHILE STRUCT RETURN BREAK CONTINUE IF ELIF ELSE READ PRINT
+%token FUNC VAR FOR WHILE STRUCT RETURN BREAK CONTINUE IF ELIF ELSE READ PRINT INT_TO_STRING FLOAT_TO_STRING
 %token STRING_LITERAL DOUBLE_LITERAL BOOL_LITERAL
 %token '&' '=' PLUS_ASSIGN_OP MINUS_ASSIGN_OP MULT_ASSIGN_OP DIV_ASSIGN_OP '!'
 %left OR_OP OR_NAMED_OP
@@ -50,7 +50,6 @@ cmd : dec {}
     | BREAK ';' {}
     | CONTINUE ';'
     ; 
-
 
 io : READ '(' assignable ')' {}
    | PRINT '(' exp ')' {}
@@ -160,8 +159,14 @@ exp : '-' exp                         %prec U_MINUS_OP {}
     | func_call                           {}
     | assignable                          {}
     | literal                             {}
+    | builtin_functions                   {}
     | '(' exp ')'                         {}
     ;
+
+builtin_functions : INT_TO_STRING '(' exp ')' {}
+                  | FLOAT_TO_STRING '(' exp ')' {}
+                  ;
+
 
 func_call : IDENTIFIER '(' params ')' {}
           ;
@@ -188,21 +193,7 @@ literal : INTEGER_LITERAL {}
         | DOUBLE_LITERAL {}
         | STRING_LITERAL {}
         | BOOL_LITERAL {}
-        | array_literal {}
-        /* | struct_literal {} */
         ;
-
-array_literal : '[' array_list ']' {}
-              ;
-
-array_list : {}
-           | exp array_list_remaining {}
-           ;
-
-array_list_remaining : {}
-                     | ',' exp array_list_remaining {}
-                     ;
-
 
 %% /* Fim da segunda seção */
 
