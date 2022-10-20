@@ -1,77 +1,84 @@
 %{
   #include <stdio.h>
   #include "y.tab.h"
-  
-  extern void yyerror (const char *msg);
+
+  void yyerror (const char *msg);
+  int charPos = 1;
+  #define ADJ (charPos+=yyleng)
 %}
+
+%option yylineno
 
 digit [0-9]
 id [A-Za-z][A-Za-z0-9_]*
 
 %%
 
-[ \t\n]               ;
+[ \t]                 { ADJ;}
+\n                    { charPos = 0; }
+func                  { ADJ; return FUNC;}
+var                   { ADJ; return VAR;}
+for                   { ADJ; return FOR;}
+while                 { ADJ; return WHILE;}
+struct                { ADJ; return STRUCT;}
+return                { ADJ; return RETURN;}
+break                 { ADJ; return BREAK;}
+continue              { ADJ; return CONTINUE;}
+if                    { ADJ; return IF;}
+elif                  { ADJ; return ELIF; }
+else                  { ADJ; return ELSE;}
+read                  { ADJ; return READ;}
+print                 { ADJ; return PRINT;}
+int_to_string         { ADJ; return INT_TO_STRING;}
+double_to_string       { ADJ; return DOUBLE_TO_STRING;}
 
-func                  { return FUNC;}
-var                   { return VAR;}
-for                   { return FOR;}
-while                 { return WHILE;}
-struct                { return STRUCT;}
-return                { return RETURN;}
-break                 { return BREAK;}
-continue              { return CONTINUE;}
-if                    { return IF;}
-elif                  { return ELIF; }
-else                  { return ELSE;}
-read                  { return READ;}
-print                 { return PRINT;}
-int_to_string         { return INT_TO_STRING;}
-float_to_string       { return FLOAT_TO_STRING;}
-
-\"([^\\\"]|\\.)*\"         { return STRING_LITERAL; }
-(\+|\-)?{digit}+           { yylval.iValue = atoi(yytext); 
+\"([^\\\"]|\\.)*\"         { ADJ; yylval.sValue = strdup(yytext);
+                             return STRING_LITERAL; }
+(\+|\-)?{digit}+           { ADJ; yylval.iValue = atoi(yytext); 
                              return INTEGER_LITERAL; }
-(\+|\-)?{digit}+\.{digit}+ { return DOUBLE_LITERAL; }
-(true|false)               { return BOOL_LITERAL; }
+(\+|\-)?{digit}+\.{digit}+ { ADJ; yylval.dValue = strtod(yytext, NULL);
+                             return DOUBLE_LITERAL; }
+(true|false)               { ADJ; yylval.sValue = strdup(yytext);
+                             return BOOL_LITERAL; }
 
-\+                         { return '+'; }
-\-                         { return '-'; }
-\*                         { return '*'; }
-\/                         { return '/'; }
-\*\*                       { return EXP_OP; }
-==                         { return EQ_OP; }
-\!=                        { return DIFF_OP; }
-\>                         { return '>'; }
-\>=                        { return GTE_OP; }
-\<                         { return '<'; }
-\<=                        { return LTE_OP; }
-\+\+                       { return CONCAT_OP; }
-\&                         { return '&'; }
-\|\|                       { return OR_OP; }
-\&&                        { return AND_OP; }
-and                        { return AND_NAMED_OP; }
-or                         { return OR_NAMED_OP; }
-\=                         { return '='; }
-\+=                        { return PLUS_ASSIGN_OP; }
-\-=                        { return MINUS_ASSIGN_OP; }
-\*=                        { return MULT_ASSIGN_OP; }
-\/=                        { return DIV_ASSIGN_OP; }
-\!                         { return '!'; }
+\+                         { ADJ; return '+'; }
+\-                         { ADJ; return '-'; }
+\*                         { ADJ; return '*'; }
+\/                         { ADJ; return '/'; }
+\*\*                       { ADJ; return EXP_OP; }
+==                         { ADJ; return EQ_OP; }
+\!=                        { ADJ; return DIFF_OP; }
+\>                         { ADJ; return '>'; }
+\>=                        { ADJ; return GTE_OP; }
+\<                         { ADJ; return '<'; }
+\<=                        { ADJ; return LTE_OP; }
+\+\+                       { ADJ; return CONCAT_OP; }
+\&                         { ADJ; return '&'; }
+\|\|                       { ADJ; return OR_OP; }
+\&&                        { ADJ; return AND_OP; }
+and                        { ADJ; return AND_NAMED_OP; }
+or                         { ADJ; return OR_NAMED_OP; }
+\=                         { ADJ; return '='; }
+\+=                        { ADJ; return PLUS_ASSIGN_OP; }
+\-=                        { ADJ; return MINUS_ASSIGN_OP; }
+\*=                        { ADJ; return MULT_ASSIGN_OP; }
+\/=                        { ADJ; return DIV_ASSIGN_OP; }
+\!                         { ADJ; return '!'; }
 
-{id}	{yylval.sValue = strdup(yytext); 
+{id}	{ ADJ; yylval.sValue = strdup(yytext); 
                        return IDENTIFIER;}
-\(                         { return '('; }
-\)                         { return ')'; }
-\[                         { return '['; }
-\]                         { return ']'; }
-\{                         { return '{'; }
-\}                         { return '}'; }
-"."                        { return '.'; }
-","                        { return ','; }
-":"                        { return ':'; }
-";"                        { return ';'; }
-\/\/.*                     {;} /*Comentario*/
-.                      {yyerror("invalid character");}
+\(                         { ADJ; return '('; }
+\)                         { ADJ; return ')'; }
+\[                         { ADJ; return '['; }
+\]                         { ADJ; return ']'; }
+\{                         { ADJ; return '{'; }
+\}                         { ADJ; return '}'; }
+"."                        { ADJ; return '.'; }
+","                        { ADJ; return ','; }
+":"                        { ADJ; return ':'; }
+";"                        { ADJ; return ';'; }
+\/\/.*                     { ADJ;} /*Comentario*/
+.                      { ADJ; yyerror("invalid character");}
 
 %%
 

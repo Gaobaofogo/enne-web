@@ -5,18 +5,19 @@ int yylex(void);
 void yyerror (const char *msg);
 extern int yylineno;
 extern char * yytext;
+extern int charPos;
 
 %}
 
 %union {
-	int    iValue; 	/* integer value */
-	char   cValue; 	/* char value */
-	char * sValue;  /* string value */
+	int     iValue;  /* integer value */
+       double  dValue;  /* double value */
+	char*   sValue;  /* string value */
 	};
 
 %token <sValue> IDENTIFIER
 %token <iValue> INTEGER_LITERAL
-%token FUNC VAR FOR WHILE STRUCT RETURN BREAK CONTINUE IF ELIF ELSE READ PRINT INT_TO_STRING FLOAT_TO_STRING
+%token FUNC VAR FOR WHILE STRUCT RETURN BREAK CONTINUE IF ELIF ELSE READ PRINT INT_TO_STRING DOUBLE_TO_STRING
 %token STRING_LITERAL DOUBLE_LITERAL BOOL_LITERAL
 %token '&' '=' PLUS_ASSIGN_OP MINUS_ASSIGN_OP MULT_ASSIGN_OP DIV_ASSIGN_OP '!'
 %left OR_OP OR_NAMED_OP
@@ -164,7 +165,7 @@ exp : '-' exp                         %prec U_MINUS_OP {}
     ;
 
 builtin_functions : INT_TO_STRING '(' exp ')' {}
-                  | FLOAT_TO_STRING '(' exp ')' {}
+                  | DOUBLE_TO_STRING '(' exp ')' {}
                   ;
 
 
@@ -202,5 +203,5 @@ int main (void) {
 }
 
 void yyerror (const char *msg) {
-	fprintf (stderr, "%d: %s at '%s'\n", yylineno, msg, yytext);
+	fprintf (stderr, "%s '%s' founded at %d:%d\n", msg, yytext, yylineno, charPos);
 }
