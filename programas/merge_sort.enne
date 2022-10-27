@@ -43,7 +43,7 @@ func merge(arr, low, high, mid)
         arr[i] = c[i];
     }
 }
-// read input array and call mergesort
+/* read input array and call mergesort */
 
 func main()
 {

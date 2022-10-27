@@ -2,7 +2,7 @@
   #include <stdio.h>
 
   void yyerror (const char *msg);
-  int charPos = 1;
+  int charPos = 0;
   #define ADJ (charPos+=yyleng)
 %}
 
@@ -72,7 +72,7 @@ or                         { ADJ; printf("%s", "OR");  }
 ","                        { ADJ; printf("%s", ",");  }
 ":"                        { ADJ; printf("%s", ":");  }
 ";"                        { ADJ; printf("%s", ";");  }
-\/\/.*                     { ADJ;} /*Comentario*/
+(\/\*([^*]|[\r\n]|(\*+([^*\/]|[\r\n])))*\*+\/)|(\/\/.*) { ADJ; printf("COMMENT(%s)", yytext); }
 .                      { ADJ; yyerror("invalid character");}
 
 %%
