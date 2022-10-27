@@ -1,0 +1,63 @@
+func merge_sort(arr, low, high)
+{
+    var mid;
+    if (low < high) {
+        //divide the array at mid and sort independently using merge sort
+        mid=(low+high)/2;
+        merge_sort(arr,low,mid);
+        merge_sort(arr,mid + 1,high);
+        //merge or conquer sorted arrays
+        merge(arr,low,high,mid);
+    }
+}
+// Merge sort
+func merge(arr, low, high, mid)
+{
+    var i, j, k, c[50];
+    i = low;
+    k = low;
+    j = mid + 1;
+    while (i <= mid && j <= high) {
+        if (arr[i] < arr[j]) {
+            c[k] = arr[i];
+            k += 1;
+            i += 1;
+        }
+        else  {
+            c[k] = arr[j];
+            k += 1;
+            j += 1;
+        }
+    }
+    while (i <= mid) {
+        c[k] = arr[i];
+        k += 1;
+        i += 1;
+    }
+    while (j <= high) {
+        c[k] = arr[j];
+        k += 1;
+        j += 1;
+    }
+    for (i = low; i < k; i += 1)  {
+        arr[i] = c[i];
+    }
+}
+// read input array and call mergesort
+
+func main()
+{
+    var myarray[30], num;
+    print("Enter number of elements to be sorted:");
+    read(num);
+    print("Enter " ++ int_to_string(num) ++ "elements to be sorted.");
+    for (var i = 0; i < num; i += 1) {
+        read(myarray[i]);
+    }
+    merge_sort(myarray, 0, num - 1);
+    print("Sorted array\n");
+    for (var i = 0; i < num; i += 1)
+    {
+        print(int_to_string(myarray[i]) ++ "\t");
+    }
+}
