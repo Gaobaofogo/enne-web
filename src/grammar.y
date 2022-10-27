@@ -198,9 +198,9 @@ literal : INTEGER_LITERAL {}
 
 %% /* Fim da segunda seção */
 
-int main (void) {
+/* int main (void) {
 	return yyparse();
-}
+} */
 
 void yyerror (const char *msg) {
 	fprintf (stderr, "%s '%s' founded at %d:%d\n", msg, yytext, yylineno, charPos);
