@@ -90,10 +90,8 @@ void yyerror (const char *msg) {
 }
 
 int main() {
-  int token;
- // while (token = yylex()) {}
   yylex();
 
-    return 1;
+  return 1;
   
 }
