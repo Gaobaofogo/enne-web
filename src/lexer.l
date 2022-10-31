@@ -92,6 +92,5 @@ void yyerror (const char *msg) {
 int main() {
   yylex();
 
-  return 1;
-  
+  return 0;
 }
