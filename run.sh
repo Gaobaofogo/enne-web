@@ -1,4 +1,4 @@
 #! /bin/bash
 
 make
-./bin/enne-web < programa.enne
+./bin/enne-web < $1

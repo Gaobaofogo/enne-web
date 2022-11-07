@@ -53,7 +53,6 @@ double_to_string       { ADJ; return DOUBLE_TO_STRING;}
 \<                         { ADJ; return '<'; }
 \<=                        { ADJ; return LTE_OP; }
 \+\+                       { ADJ; return CONCAT_OP; }
-\&                         { ADJ; return '&'; }
 \|\|                       { ADJ; return OR_OP; }
 \&&                        { ADJ; return AND_OP; }
 and                        { ADJ; return AND_NAMED_OP; }
@@ -77,7 +76,7 @@ or                         { ADJ; return OR_NAMED_OP; }
 ","                        { ADJ; return ','; }
 ":"                        { ADJ; return ':'; }
 ";"                        { ADJ; return ';'; }
-\/\/.*                     { ADJ;} /*Comentario*/
+(\/\*([^*]|[\r\n]|(\*+([^*\/]|[\r\n])))*\*+\/)|(\/\/.*) { ADJ; } /*Comentario*/
 .                      { ADJ; yyerror("invalid character");}
 
 %%
