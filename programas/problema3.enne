@@ -1,0 +1,39 @@
+func main() {
+  var linha1;
+  var coluna1;
+  var linha2;
+  var coluna2;
+
+  read(linha1);
+  read(coluna1);
+  read(linha2);
+  read(coluna2);
+
+  var a[linha1][coluna1];
+  var b[linha2][coluna2];
+  var soma[linha1][coluna1];
+  var multiplacao[coluna1][linha2];
+
+  if (linha1 == linha2 && coluna1 == coluna2) {
+    for (var i = 0; i < length(a); i += 1) {
+      for (var j = 0; j < length(a[0]); j += 1) {
+        soma[i][j] = a[i][j] + b[i][j];
+      }
+    }
+  } else {
+    print("As matrizes informadas nao podem ser somadas");
+  }
+
+  if (coluna1 == linha2) {
+    for (var i = 0; i < coluna1; i += 1) {
+      for (var j = 0; j < linha2; j += 1) {
+        multiplacao[i][j] = 0;
+        for (k = 0; k < n; k += 1) {
+          multiplacao[i][j] += a[i][k] * b[k][j];
+        }
+      }
+    }
+  } else {
+    print("As matrizes informadas nao podem ser multiplicadas.");
+  }
+}

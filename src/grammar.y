@@ -18,7 +18,7 @@ extern int charPos;
 %token <sValue> IDENTIFIER STRING_LITERAL BOOL_LITERAL
 %token <iValue> INTEGER_LITERAL
 %token <dValue> DOUBLE_LITERAL
-%token FUNC VAR FOR WHILE STRUCT RETURN BREAK CONTINUE IF ELIF ELSE READ PRINT INT_TO_STRING DOUBLE_TO_STRING
+%token FUNC VAR FOR WHILE STRUCT RETURN BREAK CONTINUE IF ELIF ELSE READ PRINT INT_TO_STRING DOUBLE_TO_STRING LENGTH
 %token '=' PLUS_ASSIGN_OP MINUS_ASSIGN_OP MULT_ASSIGN_OP DIV_ASSIGN_OP '!'
 %left OR_OP OR_NAMED_OP
 %left AND_OP AND_NAMED_OP
@@ -166,6 +166,7 @@ exp : '-' exp                         %prec U_MINUS_OP {}
 
 builtin_functions : INT_TO_STRING '(' exp ')' {}
                   | DOUBLE_TO_STRING '(' exp ')' {}
+                  | LENGTH '(' assignable ')'
                   ;
 
 

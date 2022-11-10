@@ -1,0 +1,45 @@
+func main() {
+  var segundoQuarto = 0;
+  var primeiroQuarto = 0;
+  var terceiroQuarto = 0;
+  var quartoQuarto = 0;
+
+  // Lê primeiro número
+  var leitura;
+  read(leitura);
+
+  while(leitura >= 0) {
+      // Verifica em qual "quarto" o número pertence, isso é se ele sequer pertence a algum
+      if(leitura >= 0 && leitura <= 25) {
+          primeiroQuarto = primeiroQuarto + 1;
+      } 
+      if(leitura > 25 && leitura <= 50) {
+          segundoQuarto = segundoQuarto + 1;
+      }
+      if(leitura > 50 && leitura <= 75) {
+          terceiroQuarto = terceiroQuarto + 1;
+      }
+      if(leitura > 75 && leitura <= 100) {
+          quartoQuarto = quartoQuarto + 1;
+      }
+      // Lê novamente o inteiro "leitura"
+      read(leitura);
+  }
+
+  // Imprime resultados
+  print("===================");
+  print("Primeiro intervalo:");
+  print(primeiroQuarto);
+
+  print("===================");
+  print("Segundo intervalo:");
+  print(segundoQuarto);
+
+  print("===================");
+  print("Terceiro intervalo:");
+  print(terceiroQuarto);
+
+  print("===================");
+  print("Quarto intervalo:");
+  print(quartoQuarto);
+}

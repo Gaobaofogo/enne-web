@@ -31,6 +31,7 @@ read                  { ADJ; return READ;}
 print                 { ADJ; return PRINT;}
 int_to_string         { ADJ; return INT_TO_STRING;}
 double_to_string       { ADJ; return DOUBLE_TO_STRING;}
+length                { ADJ; return LENGTH;}
 
 \"([^\\\"]|\\.)*\"         { ADJ; yylval.sValue = strdup(yytext);
                              return STRING_LITERAL; }
