@@ -1,0 +1,10 @@
+struct rational_t {
+  numerador;
+  denominador;
+} 
+
+func div(a, b) {
+  var r = { numerador = 3, denominador = { x = 3, y = 4}};
+
+  return r;
+}

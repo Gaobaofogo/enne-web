@@ -177,25 +177,42 @@ params : {}
        | exp remaining_params {}
        ;
 
-remaining_params : {}
+remaining_params :                        {}
                | ',' exp remaining_params {}
                ;
 
-assignable : IDENTIFIER {}
-           | IDENTIFIER '[' exp ']' access {}
+assignable : IDENTIFIER                       {}
+           | IDENTIFIER '[' exp ']' access    {}
            | IDENTIFIER '.' IDENTIFIER access {}
            ;
 
-access : {}
+access :                       {}
        | '.' IDENTIFIER access {}
-       | '[' exp ']' access {}
+       | '[' exp ']' access    {}
        ;
 
 literal : INTEGER_LITERAL {}
-        | DOUBLE_LITERAL {}
-        | STRING_LITERAL {}
-        | BOOL_LITERAL {}
+        | DOUBLE_LITERAL  {}
+        | STRING_LITERAL  {}
+        | BOOL_LITERAL    {}
+        | struct_literal  {}
         ;
+
+struct_literal : '{' struct_elements '}' {}
+               ;
+
+struct_elements :                                       {}
+                | struct_elem remaining_struct_elements {}
+                ;
+
+remaining_struct_elements :                                           {}
+                          | ',' struct_elem remaining_struct_elements {}
+                          ;
+
+struct_elem : IDENTIFIER '=' exp {}
+            | '{' struct_elements '}' {}
+            ;
+
 
 %% /* Fim da segunda seção */
 
