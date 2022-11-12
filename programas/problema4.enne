@@ -1,10 +1,55 @@
-struct rational_t {
-  numerador;
-  denominador;
-} 
+func cria_rational_t(a, b) {
+  return { numerador = a, denominador = b};
+}
 
-func div(a, b) {
-  var r = { numerador = 3, denominador = { x = 3, y = 4}};
+func areEqual(x, y) {
+  if (x.numerador == y.numerador && x.denominador == y.denominador) {
+    return true;
+  } else {
+    return false;
+  }
+}
 
-  return r;
+func soma(x, y) {
+  return { numerador = x.numerador + y.numerador, denominador = x.denominador + y.denominador };
+}
+
+func negacao(x) {
+  return { numerador = - x.numerador, denominador = x.denominador };
+}
+
+func subtracao(x, y) {
+  return { numerador = x.numerador - y.numerador, denominador = x.denominador - y.denominador };
+}
+
+func multiplicacao(x, y) {
+  return { numerador = x.numerador * y.numerador, denominador = x.denominador * y.denominador };
+}
+
+func inverso(x) {
+  return { numerador = x.denominador, denominador = x.numerador };
+}
+
+func divisao(x, y) {
+  return { numerador = x.numerador * y.denominador, denominador = x.denominador * y.numerador };
+}
+
+func main() {
+  var x1 = cria_rational_t(1, 2);
+  var x2 = cria_rational_t(2, 3);
+
+  var soma_num = soma(x1, x2);
+  var negacao_x1 = negacao(x1);
+  var subtracao_num = subtracao(x1, x2);
+  var multiplicacao_num = multiplicacao(x1, x2);
+  var inverso_x1 = inverso(x1);
+  var divisao_num = divisao(x1, x2);
+
+  print("Sao iguais:      " ++ bool_to_string(areEqual(x1, x2)));
+  print("Soma             numerador = " ++ int_to_string(soma_num.numerador) ++ ", denominador = " ++ int_to_string(soma_num.denominador));
+  print("Negacao          numerador = " ++ int_to_string(negacao_x1.numerador) ++ ", denominador = " ++ int_to_string(negacao_x1.denominador));
+  print("Subtracao        numerador = " ++ int_to_string(subtracao_num.numerador) ++ ", denominador = " ++ int_to_string(subtracao_num.denominador));
+  print("Multiplicacao    numerador = " ++ int_to_string(multiplicacao_num.numerador) ++ ", denominador = " ++ int_to_string(multiplicacao_num.denominador));
+  print("Inverso          numerador = " ++ int_to_string(inverso_x1.numerador) ++ ", denominador = " ++ int_to_string(inverso_x1.denominador));
+  print("Divisao          numerador = " ++ int_to_string(divisao_num.numerador) ++ ", denominador = " ++ int_to_string(divisao_num.denominador));
 }
