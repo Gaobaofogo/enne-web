@@ -169,9 +169,10 @@ exp : '-' exp                         %prec U_MINUS_OP {}
     | '(' exp ')'                         {}
     ;
 
-builtin_functions : INT_TO_STRING '(' exp ')' {}
+builtin_functions : INT_TO_STRING '(' exp ')'    {}
                   | DOUBLE_TO_STRING '(' exp ')' {}
-                  | LENGTH '(' assignable ')'
+                  | BOOL_TO_STRING '(' exp ')'   {}
+                  | LENGTH '(' assignable ')'    {}
                   ;
 
 
@@ -214,7 +215,7 @@ remaining_struct_elements :                                           {}
                           | ',' struct_elem remaining_struct_elements {}
                           ;
 
-struct_elem : IDENTIFIER '=' exp {}
+struct_elem : IDENTIFIER '=' exp      {}
             | '{' struct_elements '}' {}
             ;
 
