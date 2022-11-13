@@ -18,7 +18,8 @@ extern int charPos;
 %token <sValue> IDENTIFIER STRING_LITERAL BOOL_LITERAL
 %token <iValue> INTEGER_LITERAL
 %token <dValue> DOUBLE_LITERAL
-%token FUNC VAR FOR WHILE STRUCT RETURN BREAK CONTINUE IF ELIF ELSE READ PRINT INT_TO_STRING DOUBLE_TO_STRING LENGTH
+%token FUNC VAR FOR WHILE STRUCT RETURN BREAK CONTINUE IF ELIF ELSE
+%token READ PRINT INT_TO_STRING DOUBLE_TO_STRING LENGTH AMPERSAND
 %token '=' PLUS_ASSIGN_OP MINUS_ASSIGN_OP MULT_ASSIGN_OP DIV_ASSIGN_OP '!'
 %left OR_OP OR_NAMED_OP
 %left AND_OP AND_NAMED_OP
@@ -111,6 +112,18 @@ dec : FUNC IDENTIFIER '(' args ')' '{' block '}' {}
     | var_dec {}
     ;
 
+args : {}
+     | args_specifier
+     ;
+
+args_specifier : reference_ampersand IDENTIFIER {}
+               | args_specifier ',' reference_ampersand IDENTIFIER
+               ;
+
+reference_ampersand : {}
+                    | '&'
+                    ;
+
 struct_fields : {}
        | field struct_fields {}
        ;
@@ -125,14 +138,6 @@ var_dec : VAR init_declarator_list ';' {}
 init_declarator_list : init_declarator {}
                      | init_declarator ',' init_declarator_list {}
                      ;
-
-args : {}
-     | args_specifier
-     ;
-
-args_specifier : IDENTIFIER {}
-               | args_specifier ',' IDENTIFIER
-               ;
 
 init_declarator : IDENTIFIER {}
                 | init_declarator '[' exp ']' {}

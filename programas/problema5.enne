@@ -1,0 +1,19 @@
+func mdc(m, n, &r) {
+  if (m % n == 0) {
+    r = n;
+  } elif (n % m == 0) {
+    r = m;
+  } elif (m % n != 0 && m > n) {
+    mdc(n, m % n, r);
+  }
+}
+
+func main() {
+  var m =  12;
+  var n = 3;
+  var r;
+
+  mdc(m, n, r);
+
+  print("O valor de r eh: " ++ int_to_string(r));
+}

@@ -46,6 +46,7 @@ length                { ADJ; return LENGTH;}
 \-                         { ADJ; return '-'; }
 \*                         { ADJ; return '*'; }
 \/                         { ADJ; return '/'; }
+\%                         { ADJ; return '%';}
 \*\*                       { ADJ; return EXP_OP; }
 ==                         { ADJ; return EQ_OP; }
 \!=                        { ADJ; return DIFF_OP; }
@@ -53,6 +54,7 @@ length                { ADJ; return LENGTH;}
 \>=                        { ADJ; return GTE_OP; }
 \<                         { ADJ; return '<'; }
 \<=                        { ADJ; return LTE_OP; }
+\&                         { ADJ; return '&';}
 \+\+                       { ADJ; return CONCAT_OP; }
 \|\|                       { ADJ; return OR_OP; }
 \&&                        { ADJ; return AND_OP; }
