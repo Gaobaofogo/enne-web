@@ -1,0 +1,35 @@
+func cria_noh_da_arvore(novo_valor) {
+  return {valor = novo_valor, esquerda = {}, direita = {}};
+}
+
+func insere_novo_noh(noh, novo_valor) {
+  if (noh.valor < novo_valor) {
+    if (noh.esquerda == {}) {
+      noh.esquerda = cria_noh_da_arvore(novo_valor);
+    } else {
+      insere_novo_noh(noh.esquerda, novo_valor);
+    }
+  } else {
+    if (noh.direita == {}) {
+        noh.direita = cria_noh_da_arvore(novo_valor);
+    } else {
+      insere_novo_noh(noh.direita, novo_valor);
+    }
+  }
+}
+
+func main() {
+    var valores[5];
+    valores[0] = 0;
+    valores[1] = 1;
+    valores[2] = 2; // Esse aqui é o nó raiz
+    valores[3] = 3;
+    valores[4] = 4;
+
+    var raiz = cria_noh_da_arvore(valores[2]);
+
+    insere_novo_noh(valores[0]);
+    insere_novo_noh(valores[1]);
+    insere_novo_noh(valores[3]);
+    insere_novo_noh(valores[4]);
+  }
