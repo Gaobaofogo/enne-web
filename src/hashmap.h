@@ -1,7 +1,7 @@
 // Simple hash table implemented in C.
 
-#ifndef _HT_H
-#define _HT_H
+#ifndef _ENNE_HASHMAP
+#define _ENNE_HASHMAP 
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -46,4 +46,4 @@ hti ht_iterator(ht* table);
 // items, return false. Don't call ht_set during iteration.
 bool ht_next(hti* it);
 
-#endif // _HT_H
+#endif
