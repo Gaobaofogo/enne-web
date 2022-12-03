@@ -1,5 +1,6 @@
 %{
   #include <stdio.h>
+  #include "node.h"
   #include "y.tab.h"
 
   void yyerror (const char *msg);

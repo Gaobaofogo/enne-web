@@ -1,5 +1,7 @@
 %{
 #include <stdio.h>
+#include <stdlib.h>
+#include "string.h"
 
 int yylex(void);
 void yyerror (const char *msg);
@@ -7,13 +9,22 @@ extern int yylineno;
 extern char * yytext;
 extern int charPos;
 
+char* scope = "global";
+char* DEFAULT_CODE = "\0";
+int DEFAULT_SIZE = 2;
+
+void concat_code(char *code, char *new_code) {
+  code = (char *)realloc(code, strlen(code) + strlen(new_code) + 1);
+  strcat(code, new_code);
+}
+
 %}
 
 %union {
-	int     iValue;  /* integer value */
-       double  dValue;  /* double value */
-	char*   sValue;  /* string value */
-	};
+	int     iValue;
+  double  dValue;
+	char*   sValue;
+};
 
 %token <sValue> IDENTIFIER STRING_LITERAL BOOL_LITERAL
 %token <iValue> INTEGER_LITERAL
@@ -31,38 +42,72 @@ extern int charPos;
 %left U_MINUS_OP U_NOT_OP
 %right EXP_OP
 
+%type <sValue> io decs dec exp block cmd literal
+
 %start prog
 
 %% /* Inicio da segunda seção, onde colocamos as regras BNF */
 
-prog : decs {} 
-	;
+prog : decs
+     {
+      FILE *out_file = fopen("codigo_intermediario.c", "w");
+      printf("%s", $1);
+      fprintf(out_file, "#include <stdio.h>\n%s", $1);
+     } 
+	   ;
 
-decs : {}
-     | dec decs {}
+decs :
+     {
+      $$ = "";
+     }
+     | dec decs
+     {
+      char *teste = (char *)malloc(sizeof(char) * DEFAULT_SIZE);
+      concat_code(teste, $1);
+      concat_code(teste, $2);
+
+      $$ = teste;
+     }
      ;
 
 cmd : dec {}
     | if {}
     | loop {}
     | assignment ';' {}
-    | io ';' {}
+    | io ';' { $$ = $1; }
     | RETURN return {}
     | exp ';' {}
     | BREAK ';' {}
-    | CONTINUE ';'
+    | CONTINUE ';' {}
     ; 
 
-io : READ '(' assignable ')' {}
-   | PRINT '(' exp ')' {}
+io : READ '(' assignable ')' { }
+   | PRINT '(' exp ')'
+   { 
+      char *teste = (char *)malloc(sizeof(char) * 8);
+      concat_code(teste, "printf(");
+      concat_code(teste, $3);
+      concat_code(teste, ");\n");
+
+      $$ = teste;
+   }
    ;
 
 return : ';' {}
        | exp ';' {}
        ;
 
-block : {}
-      | block cmd {}
+block :
+      {
+        $$ = "";
+      }
+      | block  cmd
+      {
+        char *teste = (char *)malloc(sizeof(char) * DEFAULT_SIZE);
+        concat_code(teste, $1);
+        concat_code(teste, $2);
+        $$ = teste;
+      }
       ;
 
 if : IF '(' exp ')' '{' block '}' elseif else {}
@@ -107,8 +152,18 @@ assignment : assignable '=' exp {}
            | assignable MULT_ASSIGN_OP exp {}
            ;
 
-dec : FUNC IDENTIFIER '(' args ')' '{' block '}' {}
-    | STRUCT IDENTIFIER '{' struct_fields '}'
+dec : FUNC IDENTIFIER '(' args ')' '{' block '}'
+      {
+        char *teste = (char *)malloc(sizeof(char) * DEFAULT_SIZE);
+        concat_code(teste, "int ");
+        concat_code(teste, $2);
+        concat_code(teste, " () {\n");
+        concat_code(teste, $7);
+        concat_code(teste, "}\n");
+
+        $$ = teste;
+      }
+    | STRUCT IDENTIFIER '{' struct_fields '}' {}
     | var_dec {}
     ;
 
@@ -164,7 +219,10 @@ exp : '-' exp                         %prec U_MINUS_OP {}
     | exp CONCAT_OP exp                   {}
     | func_call                           {}
     | assignable                          {}
-    | literal                             {}
+    | literal
+    {
+      $$ = $1;
+    }
     | builtin_functions                   {}
     | '(' exp ')'                         {}
     ;
@@ -199,7 +257,9 @@ access :                       {}
 
 literal : INTEGER_LITERAL {}
         | DOUBLE_LITERAL  {}
-        | STRING_LITERAL  {}
+        | STRING_LITERAL {
+          $$ = $1;
+        }
         | BOOL_LITERAL    {}
         | struct_literal  {}
         ;
