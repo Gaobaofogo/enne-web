@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "string.h"
+#include "hashmap.h"
 
 int yylex(void);
 void yyerror (const char *msg);
@@ -17,6 +18,8 @@ void concat_code(char *code, char *new_code) {
   code = (char *)realloc(code, strlen(code) + strlen(new_code) + 1);
   strcat(code, new_code);
 }
+
+ht* symbol_table;
 
 %}
 
@@ -154,13 +157,14 @@ assignment : assignable '=' exp {}
 
 dec : FUNC IDENTIFIER '(' args ')' '{' block '}'
       {
+        ht_set(symbol_table, $2, $2);
         char *teste = (char *)malloc(sizeof(char) * DEFAULT_SIZE);
         concat_code(teste, "int ");
         concat_code(teste, $2);
         concat_code(teste, " () {\n");
         concat_code(teste, $7);
         concat_code(teste, "}\n");
-
+        
         $$ = teste;
       }
     | STRUCT IDENTIFIER '{' struct_fields '}' {}
@@ -194,7 +198,10 @@ init_declarator_list : init_declarator {}
                      | init_declarator ',' init_declarator_list {}
                      ;
 
-init_declarator : IDENTIFIER {}
+init_declarator : IDENTIFIER 
+                {
+                  ht_set(symbol_table, $1, $1);
+                }
                 | init_declarator '[' exp ']' {}
                 ;
 
@@ -254,10 +261,10 @@ access :                       {}
        | '.' IDENTIFIER access {}
        | '[' exp ']' access    {}
        ;
-
 literal : INTEGER_LITERAL {}
         | DOUBLE_LITERAL  {}
         | STRING_LITERAL {
+          ht_set(symbol_table, "1", $1);
           $$ = $1;
         }
         | BOOL_LITERAL    {}
@@ -283,7 +290,9 @@ struct_elem : IDENTIFIER '=' exp      {}
 %% /* Fim da segunda seção */
 
 int main (void) {
-	return yyparse();
+  symbol_table = ht_create();
+  yyparse();
+  return 0;
 }
 
 void yyerror (const char *msg) {
