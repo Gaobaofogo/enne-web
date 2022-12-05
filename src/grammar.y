@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include "string.h"
 #include "hashmap.h"
+#include "stack.h"
 
 int yylex(void);
 void yyerror (const char *msg);
@@ -10,7 +11,7 @@ extern int yylineno;
 extern char * yytext;
 extern int charPos;
 
-char* scope = "global";
+char* scope = "";
 char* DEFAULT_CODE = "\0";
 int DEFAULT_SIZE = 2;
 
@@ -19,9 +20,12 @@ void concat_code(char *code, char *new_code) {
   strcat(code, new_code);
 }
 
+
 ht* symbol_table;
+Stack* context_stack;
 
 %}
+
 
 %union {
 	int     iValue;
@@ -45,17 +49,17 @@ ht* symbol_table;
 %left U_MINUS_OP U_NOT_OP
 %right EXP_OP
 
-%type <sValue> io decs dec exp block cmd literal
+%type <sValue> io decs dec exp block cmd literal init_declarator var_dec init_declarator_list
 
 %start prog
 
 %% /* Inicio da segunda seção, onde colocamos as regras BNF */
 
-prog : decs
+prog : { push(context_stack, "global"); } decs
      {
+      pop(context_stack);
       FILE *out_file = fopen("codigo_intermediario.c", "w");
-      printf("%s", $1);
-      fprintf(out_file, "#include <stdio.h>\n%s", $1);
+      fprintf(out_file, "#include <stdio.h>\n#include \"variable.h\"\n%s", $2);
      } 
 	   ;
 
@@ -73,7 +77,7 @@ decs :
      }
      ;
 
-cmd : dec {}
+cmd : dec { $$ = $1; }
     | if {}
     | loop {}
     | assignment ';' {}
@@ -155,20 +159,23 @@ assignment : assignable '=' exp {}
            | assignable MULT_ASSIGN_OP exp {}
            ;
 
-dec : FUNC IDENTIFIER '(' args ')' '{' block '}'
+dec : FUNC IDENTIFIER { push(context_stack, $2); } '(' args ')' '{' block '}'
       {
-        ht_set(symbol_table, $2, $2);
+        pop(context_stack);
+        char* name = get_scope(context_stack);
+        concat_code(name, $2);
+        ht_set(symbol_table, name, name);
         char *teste = (char *)malloc(sizeof(char) * DEFAULT_SIZE);
         concat_code(teste, "int ");
         concat_code(teste, $2);
         concat_code(teste, " () {\n");
-        concat_code(teste, $7);
+        concat_code(teste, $8);
         concat_code(teste, "}\n");
         
         $$ = teste;
       }
     | STRUCT IDENTIFIER '{' struct_fields '}' {}
-    | var_dec {}
+    | var_dec { $$ = $1;}
     ;
 
 args : {}
@@ -190,17 +197,29 @@ struct_fields : {}
 field : IDENTIFIER ';' {}
       ;
 
-var_dec : VAR init_declarator_list ';' {}
+var_dec : VAR init_declarator_list ';'
+        {
+          $$ = $2;
+        }
         | VAR init_declarator '=' exp ';' {}
         ;
 
-init_declarator_list : init_declarator {}
+init_declarator_list : init_declarator
+                     {
+                      char *code = (char *)malloc(sizeof(char) * DEFAULT_SIZE);
+
+                      concat_code(code, "Variable ");
+                      concat_code(code, "macarrao_com_salsicha");
+                      concat_code(code, ";\n");
+                      $$ = code;
+                     }
                      | init_declarator ',' init_declarator_list {}
                      ;
 
 init_declarator : IDENTIFIER 
                 {
                   ht_set(symbol_table, $1, $1);
+                  $$ = $1;
                 }
                 | init_declarator '[' exp ']' {}
                 ;
@@ -291,6 +310,7 @@ struct_elem : IDENTIFIER '=' exp      {}
 
 int main (void) {
   symbol_table = ht_create();
+  context_stack = createStack(300);
   yyparse();
   return 0;
 }

@@ -1,5 +1,4 @@
 func main() {
-  print("Hello world\n");
+  print("Oi mundo\n");
+  var x;
 }
-
-

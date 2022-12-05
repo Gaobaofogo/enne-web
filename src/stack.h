@@ -1,11 +1,11 @@
 #ifndef _ENNE_STACK
 
 // A structure to represent a stack
-struct Stack {
+typedef struct Stack {
   int top;
   unsigned capacity;
-  int *array;
-};
+  char **array;
+} Stack;
 
 // function to create a stack of given capacity. It initializes size of
 // stack as 0
@@ -18,12 +18,14 @@ int isFull(struct Stack *stack);
 int isEmpty(struct Stack *stack);
 
 // Function to add an item to stack.  It increases top by 1
-void push(struct Stack *stack, int item);
+void push(struct Stack *stack, char* item);
 
 // Function to remove an item from stack.  It decreases top by 1
-int pop(struct Stack *stack);
+char* pop(struct Stack *stack);
 
 // Function to return the top from stack without removing it
-int peek(struct Stack *stack);
+char* peek(struct Stack *stack);
+
+char* get_scope(struct Stack *stack);
 
 #endif

@@ -1,4 +1,6 @@
 #include <stdio.h>
+#include "variable.h"
 int main () {
-printf("Hello world\n");
+printf("Oi mundo\n");
+Variable macarrao_com_salsicha;
 }
