@@ -3,6 +3,7 @@
 typedef struct {
   char *type;
   void *value;
+  char* name;
 } Variable;
 
 void set_value_variable(Variable *var, char *type, void *value);
