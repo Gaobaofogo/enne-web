@@ -1,14 +1,8 @@
 #ifndef _VARIABLE_H_
 
-typedef union {
-  char* str;
-  int i;
-  double d;
-} Value;
-
 typedef struct {
   char* type;
-  Value v;
+  void* valor;
 } Variable;
 
 typedef Variable LiteralTemp;

@@ -48,7 +48,7 @@ char* peek(struct Stack *stack) {
 
 void concat_scope(char *scope, char *new_scope) {
   scope = (char *)realloc(scope, strlen(scope) + strlen(new_scope) + 1);
-  strcat(scope, new_scope);
+  sprintf(scope, "%s%s", scope, new_scope);
 }
 
 char* get_scope(struct Stack *stack) {

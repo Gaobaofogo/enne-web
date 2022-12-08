@@ -1,4 +1,4 @@
 func main() {
-  print("Oi mundo\n");
   var x;
+  print("Oieee\n");
 }

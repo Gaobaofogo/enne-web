@@ -17,7 +17,7 @@ int DEFAULT_SIZE = 2;
 
 void concat_code(char *code, char *new_code) {
   code = (char *)realloc(code, strlen(code) + strlen(new_code) + 1);
-  strcat(code, new_code);
+  sprintf(code, "%s%s", code, new_code);
 }
 
 
@@ -25,7 +25,6 @@ ht* symbol_table;
 Stack* context_stack;
 
 %}
-
 
 %union {
 	int     iValue;
@@ -209,7 +208,7 @@ init_declarator_list : init_declarator
                       char *code = (char *)malloc(sizeof(char) * DEFAULT_SIZE);
 
                       concat_code(code, "Variable ");
-                      concat_code(code, "macarrao_com_salsicha");
+                      concat_code(code, $1);
                       concat_code(code, ";\n");
                       $$ = code;
                      }
@@ -218,8 +217,11 @@ init_declarator_list : init_declarator
 
 init_declarator : IDENTIFIER 
                 {
-                  ht_set(symbol_table, $1, $1);
-                  $$ = $1;
+                  char* nome_com_escopo = get_scope(context_stack);
+                  concat_code(nome_com_escopo, $1);
+                  
+                  ht_set(symbol_table, nome_com_escopo, nome_com_escopo);
+                  $$ = nome_com_escopo;
                 }
                 | init_declarator '[' exp ']' {}
                 ;
