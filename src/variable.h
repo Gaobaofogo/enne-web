@@ -1,9 +1,12 @@
 #ifndef _VARIABLE_H_
 
 typedef struct {
-  char* type;
-  void* valor;
+  char *type;
+  void *value;
 } Variable;
+
+void set_value_variable(Variable *var, char *type, void *value);
+char* generate_insert_code(Variable *var, char *name);
 
 typedef Variable LiteralTemp;
 
