@@ -11,9 +11,10 @@ typedef struct noh {
   struct noh *right;
 } noh;
 
-char* gerador_de_nome() {
-  return "t1";
+void* get_value_from_node(noh* node) {
+  return node->var.value;
 }
+
 
 char * cat(char * s1, char * s2, char * s3, char * s4, char * s5){
   int tam;
@@ -32,23 +33,46 @@ char * cat(char * s1, char * s2, char * s3, char * s4, char * s5){
   return output;
 }
 
+int COUNTER = 1;
+
+char* aux_t_name_generator() {
+  char* name;
+  char aux[100];
+
+  sprintf(aux, "%d", COUNTER++);
+  name = cat("t", aux, "", "", "");
+
+  return name;
+}
+
 void gerar_folha(noh* noh) {
-  noh->var.name = gerador_de_nome();
-  noh->codigo = cat("Variable ", noh->var.name, ";\n", "", "");
+  noh->var.name = aux_t_name_generator();
+  noh->codigo = cat("noh ", noh->var.name, ";\n", "", "");
   noh->codigo = cat(noh->codigo, generate_insert_code(&noh->var, noh->var.name), "", "", "");
 }
 
 char* generate_op_code(noh* noh) {
   char *code;
 
+  noh->var.name = aux_t_name_generator();
   
+  if (strcmp(noh->op, "/") == 0) {
+    noh->var.type = "int"; // Precisa de um gerador de tipos pra comparar o left e right
+    noh->var.value = (void*)((int)noh->left->var.value / (int)noh->right->var.value);
+  }
 
+  code = cat("noh ", noh->var.name, ";\n", "", "");
+  code = cat(code, noh->var.name, ".left = &", noh->left->var.name, ";\n");
+  code = cat(code, noh->var.name, ".right = &", noh->right->var.name, ";\n");
+  code = cat(code, "set_value_variable(&", noh->var.name, ".var, \"int\", get_value_from_node(&", noh->var.name);
+  code = cat(code, "));\n", "", "", "");
+  
   return code;
 }
 
 void gerar_noh(noh* noh) {
-  noh->var.name = gerador_de_nome();
-  noh->codigo = cat("Variable ", noh->var.name, ";\n", "", "");
+  noh->var.name = aux_t_name_generator();
+  noh->codigo = cat("noh ", noh->var.name, ";\n", "", "");
 }
 
 int main(int argc, char *argv[]) {
@@ -60,32 +84,19 @@ int main(int argc, char *argv[]) {
 
   noh y;
   set_value_variable(&y.var, "int", (void *)1234);
+  set_value_variable(&y.var, "int", y.var.value);
   
   gerar_folha(&x);
   printf("%s\n", x.codigo);
-  printf("%s\n", x.var.name);
   
   gerar_folha(&y);
   printf("%s\n", y.codigo);
-  printf("%s\n", y.var.name);
-  
   
   noh div;
   div.left = &x;
   div.right = &y;
   div.op = "/";
-  div.var.name = gerador_de_nome();
-  
-  if (strcmp(div.op, "/") == 0) {
-    div.var.type = "int"; // Precisa de um gerador de tipos pra comparar o left e right
-    printf("1: %d\n", (int)div.left->var.value);
-    printf("2: %d\n", (int)div.right->var.value);
-    printf("%d\n", (int)div.left->var.value / (int)div.right->var.value);
-    div.var.value = (void*)((int)div.left->var.value / (int)div.right->var.value);
-  }
-
-  printf("Variable %s;\n", div.var.name);
-  printf("set_value_variable(&%s, \"int\", (void*)%d);\n", div.var.name, (int)div.var.value);
+  printf("%s\n", generate_op_code(&div));
 
   return 0;
 }

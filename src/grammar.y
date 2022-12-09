@@ -4,6 +4,9 @@
 #include "string.h"
 #include "hashmap.h"
 #include "stack.h"
+#include "node.h"
+#include "variable.h"
+#include "str_aux.h"
 
 int yylex(void);
 void yyerror (const char *msg);
@@ -30,6 +33,7 @@ Stack* context_stack;
 	int     iValue;
   double  dValue;
 	char*   sValue;
+  Node    node;
 };
 
 %token <sValue> IDENTIFIER STRING_LITERAL BOOL_LITERAL
@@ -48,7 +52,8 @@ Stack* context_stack;
 %left U_MINUS_OP U_NOT_OP
 %right EXP_OP
 
-%type <sValue> io decs dec exp block cmd literal init_declarator var_dec init_declarator_list
+%type <sValue> io decs dec exp block cmd init_declarator var_dec init_declarator_list
+%type <node> literal
 
 %start prog
 
@@ -207,6 +212,10 @@ init_declarator_list : init_declarator
                      {
                       char *code = (char *)malloc(sizeof(char) * DEFAULT_SIZE);
 
+                      /* Incompleto */
+                      Node n;
+                      n.var.name = $1;
+
                       concat_code(code, "Variable ");
                       concat_code(code, $1);
                       concat_code(code, ";\n");
@@ -219,9 +228,12 @@ init_declarator : IDENTIFIER
                 {
                   char* nome_com_escopo = get_scope(context_stack);
                   concat_code(nome_com_escopo, $1);
+                  Node n;
+                  sprintf(n.var.name, "%s", nome_com_escopo);
+                  free(nome_com_escopo);
                   
-                  ht_set(symbol_table, nome_com_escopo, nome_com_escopo);
-                  $$ = nome_com_escopo;
+                  ht_set(symbol_table, n.var.name, n.var.name);
+                  $$ = n.var.name;
                 }
                 | init_declarator '[' exp ']' {}
                 ;
@@ -249,7 +261,7 @@ exp : '-' exp                         %prec U_MINUS_OP {}
     | assignable                          {}
     | literal
     {
-      $$ = $1;
+      /* $$ = $1; */
     }
     | builtin_functions                   {}
     | '(' exp ')'                         {}
@@ -282,11 +294,10 @@ access :                       {}
        | '.' IDENTIFIER access {}
        | '[' exp ']' access    {}
        ;
-literal : INTEGER_LITERAL {}
+literal : INTEGER_LITERAL {
+        }
         | DOUBLE_LITERAL  {}
         | STRING_LITERAL {
-          ht_set(symbol_table, "1", $1);
-          $$ = $1;
         }
         | BOOL_LITERAL    {}
         | struct_literal  {}

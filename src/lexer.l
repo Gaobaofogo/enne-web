@@ -1,5 +1,12 @@
 %{
   #include <stdio.h>
+  #include <stdlib.h>
+  #include "string.h"
+  #include "hashmap.h"
+  #include "stack.h"
+  #include "node.h"
+  #include "variable.h"
+  #include "str_aux.h"
   #include "y.tab.h"
 
   void yyerror (const char *msg);

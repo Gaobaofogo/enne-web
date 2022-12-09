@@ -1,6 +1,7 @@
 #ifndef _VARIABLE_H_
+#define _VARIABLE_H_
 
-typedef struct {
+typedef struct Variable {
   char *type;
   void *value;
   char* name;

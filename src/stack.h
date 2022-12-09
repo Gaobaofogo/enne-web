@@ -1,4 +1,5 @@
 #ifndef _ENNE_STACK
+#define _ENNE_STACK
 
 // A structure to represent a stack
 typedef struct Stack {
