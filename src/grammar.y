@@ -52,8 +52,8 @@ Stack* context_stack;
 %left U_MINUS_OP U_NOT_OP
 %right EXP_OP
 
-%type <sValue> io decs dec exp block cmd init_declarator var_dec init_declarator_list
-%type <node> literal
+%type <sValue> io decs dec block cmd var_dec init_declarator_list
+%type <node> literal init_declarator exp
 
 %start prog
 
@@ -63,7 +63,7 @@ prog : { push(context_stack, "global"); } decs
      {
       pop(context_stack);
       FILE *out_file = fopen("codigo_intermediario.c", "w");
-      fprintf(out_file, "#include <stdio.h>\n#include \"variable.h\"\n%s", $2);
+      fprintf(out_file, "#include \"str_aux.h\"\n#include <stdio.h>\n#include \"node.h\"\n#include \"variable.h\"\n%s", $2);
      } 
 	   ;
 
@@ -97,7 +97,8 @@ io : READ '(' assignable ')' { }
    { 
       char *teste = (char *)malloc(sizeof(char) * 8);
       concat_code(teste, "printf(");
-      concat_code(teste, $3);
+      concat_code(teste, "alala");
+      /* concat_code(teste, $3); */
       concat_code(teste, ");\n");
 
       $$ = teste;
@@ -205,20 +206,16 @@ var_dec : VAR init_declarator_list ';'
         {
           $$ = $2;
         }
-        | VAR init_declarator '=' exp ';' {}
+        | VAR init_declarator '=' exp ';' {
+          char* code;
+          code = cat($4.codigo, "\nNode ", $2.var.name, ";\n", generate_insert_code_from_variable(&$2.var, &$4.var));
+          $$ = code;
+        }
         ;
 
 init_declarator_list : init_declarator
                      {
-                      char *code = (char *)malloc(sizeof(char) * DEFAULT_SIZE);
-
-                      /* Incompleto */
-                      Node n;
-                      n.var.name = $1;
-
-                      concat_code(code, "Variable ");
-                      concat_code(code, $1);
-                      concat_code(code, ";\n");
+                      char *code = cat("Node ", $1.var.name, ";\n", "", "");
                       $$ = code;
                      }
                      | init_declarator ',' init_declarator_list {}
@@ -228,12 +225,14 @@ init_declarator : IDENTIFIER
                 {
                   char* nome_com_escopo = get_scope(context_stack);
                   concat_code(nome_com_escopo, $1);
+
                   Node n;
-                  sprintf(n.var.name, "%s", nome_com_escopo);
+                  n.var.name = cat(nome_com_escopo, "", "", "", "");
+
                   free(nome_com_escopo);
-                  
+
                   ht_set(symbol_table, n.var.name, n.var.name);
-                  $$ = n.var.name;
+                  $$ = n;
                 }
                 | init_declarator '[' exp ']' {}
                 ;
@@ -243,7 +242,16 @@ exp : '-' exp                         %prec U_MINUS_OP {}
     | exp '+' exp                         {}
     | exp '-' exp                         {}
     | exp '*' exp                         {}
-    | exp '/' exp                         {}
+    | exp '/' exp
+    {
+      Node n;
+      n.left = &$1;
+      n.left = &$3;
+      n.op = "/";
+      n.codigo = generate_op_code(&n);
+      /**/
+      $$ = n;
+    }
     | exp '%' exp                         {}
     | exp EXP_OP exp                      {}
     | exp AND_OP exp                      {}
@@ -261,7 +269,7 @@ exp : '-' exp                         %prec U_MINUS_OP {}
     | assignable                          {}
     | literal
     {
-      /* $$ = $1; */
+      $$ = $1;
     }
     | builtin_functions                   {}
     | '(' exp ')'                         {}
@@ -295,6 +303,11 @@ access :                       {}
        | '[' exp ']' access    {}
        ;
 literal : INTEGER_LITERAL {
+          Node n;
+          n.var.type = "int";
+          n.var.value = (void*)$1;
+          generate_leaf(&n);
+          $$ = n;
         }
         | DOUBLE_LITERAL  {}
         | STRING_LITERAL {

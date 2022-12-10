@@ -7,6 +7,7 @@
 int COUNTER = 1;
 
 void *get_value_from_node(Node *node) { return node->var.value; }
+void *get_value_from_variable(Variable *var) { return var->value; }
 
 char *aux_t_name_generator() {
   char *name;
@@ -50,5 +51,5 @@ char *generate_op_code(Node *node) {
 
 void generate_node(Node *node) {
   node->var.name = aux_t_name_generator();
-  node->codigo = cat("noh ", node->var.name, ";\n", "", "");
+  node->codigo = cat("Node ", node->var.name, ";\n", "", "");
 }

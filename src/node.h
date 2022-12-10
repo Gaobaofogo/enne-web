@@ -12,6 +12,7 @@ typedef struct Node {
 } Node;
 
 void *get_value_from_node(Node *node);
+void *get_value_from_variable(Variable *var);
 char *aux_t_name_generator();
 void generate_leaf(Node *node);
 char *generate_op_code(Node *node);
