@@ -246,9 +246,10 @@ exp : '-' exp                         %prec U_MINUS_OP {}
     {
       Node n;
       n.left = &$1;
-      n.left = &$3;
+      n.right = &$3;
       n.op = "/";
-      n.codigo = generate_op_code(&n);
+      char *teste = generate_op_code(&n);
+      n.codigo = cat(teste, "", "", "", "");
       /**/
       $$ = n;
     }
@@ -304,7 +305,7 @@ access :                       {}
        ;
 literal : INTEGER_LITERAL {
           Node n;
-          n.var.type = "int";
+          n.var.type = "long";
           n.var.value = (void*)$1;
           generate_leaf(&n);
           $$ = n;

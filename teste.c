@@ -96,6 +96,9 @@ int main(int argc, char *argv[]) {
   div.left = &x;
   div.right = &y;
   div.op = "/";
+  div.var.value = (void*)(*((long*)div.right->var.value) / *((long*)div.right->var.value));
+
+
   printf("%s\n", generate_op_code(&div));
 
   return 0;

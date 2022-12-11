@@ -31,20 +31,19 @@ char *generate_op_code(Node *node) {
   char *code;
 
   node->var.name = aux_t_name_generator();
-
-  if (strcmp(node->op, "/") == 0) {
-    node->var.type =
-        "int"; // Precisa de um gerador de tipos pra comparar o left e right
-    node->var.value =
-        (void *)((int)node->left->var.value / (int)node->right->var.value);
-  }
-
-  code = cat("Node ", node->var.name, ";\n", "", "");
+  code = cat(node->left->codigo, node->right->codigo, "", "", "");
+  code = cat(code, "Node ", node->var.name, ";\n", "");
   code = cat(code, node->var.name, ".left = &", node->left->var.name, ";\n");
   code = cat(code, node->var.name, ".right = &", node->right->var.name, ";\n");
-  code = cat(code, "set_value_variable(&", node->var.name,
-             ".var, \"int\", get_value_from_node(&", node->var.name);
-  code = cat(code, "));\n", "", "", "");
+
+  if (strcmp(node->op, "/") == 0) {
+    code = cat(code, node->var.name, ".op = \"", node->op, "\";\n");
+    code = cat(code, node->var.name, ".var.value = ", "", "");
+    code = cat(code, "(void*)((", node->left->var.type, ")", node->var.name);
+    code = cat(code, ".left->var.value / (", node->right->var.type, ")", node->var.name);
+    code = cat(code, ".right->var.value);\n", "", "", "");
+  }
+
 
   return code;
 }
