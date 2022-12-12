@@ -17,5 +17,6 @@ char *aux_t_name_generator();
 void generate_leaf(Node *node);
 char *generate_op_code(Node *node);
 void generate_node(Node *node);
+char *create_attr_code(Node *node1, Node *node2);
 
 #endif // !_NODE_H_

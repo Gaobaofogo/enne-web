@@ -63,7 +63,7 @@ prog : { push(context_stack, "global"); } decs
      {
       pop(context_stack);
       FILE *out_file = fopen("codigo_intermediario.c", "w");
-      fprintf(out_file, "#include \"str_aux.h\"\n#include <stdio.h>\n#include \"node.h\"\n#include \"variable.h\"\n%s", $2);
+      fprintf(out_file, "#include <math.h>\n#include \"str_aux.h\"\n#include <stdio.h>\n#include \"node.h\"\n#include \"variable.h\"\n%s", $2);
      } 
 	   ;
 
@@ -208,7 +208,7 @@ var_dec : VAR init_declarator_list ';'
         }
         | VAR init_declarator '=' exp ';' {
           char* code;
-          code = cat($4.codigo, "\nNode ", $2.var.name, ";\n", generate_insert_code_from_variable(&$2.var, &$4.var));
+          code = cat($4.codigo, "\nNode ", $2.var.name, ";\n", create_attr_code(&$2, &$4));
           $$ = code;
         }
         ;
@@ -239,22 +239,48 @@ init_declarator : IDENTIFIER
 
 exp : '-' exp                         %prec U_MINUS_OP {}
     | '!' exp                         %prec U_NOT_OP   {}
-    | exp '+' exp                         {}
-    | exp '-' exp                         {}
-    | exp '*' exp                         {}
+    | exp '+' exp                         {
+      Node n;
+      n.left = &$1;
+      n.right = &$3;
+      n.op = "+";
+      n.codigo = cat(generate_op_code(&n), "", "", "", "");
+      $$ = n;
+    }
+    | exp '-' exp                         {
+      Node n;
+      n.left = &$1;
+      n.right = &$3;
+      n.op = "-";
+      n.codigo = cat(generate_op_code(&n), "", "", "", "");
+      $$ = n;
+    }
+    | exp '*' exp                         {
+      Node n;
+      n.left = &$1;
+      n.right = &$3;
+      n.op = "*";
+      n.codigo = cat(generate_op_code(&n), "", "", "", "");
+      $$ = n;
+    }
     | exp '/' exp
     {
       Node n;
       n.left = &$1;
       n.right = &$3;
       n.op = "/";
-      char *teste = generate_op_code(&n);
-      n.codigo = cat(teste, "", "", "", "");
-      /**/
+      n.codigo = cat(generate_op_code(&n), "", "", "", "");
+      $$ = n;
+    }
+    | exp EXP_OP exp                      {
+      Node n;
+      n.left = &$1;
+      n.right = &$3;
+      n.op = "**";
+      n.codigo = cat(generate_op_code(&n), "", "", "", "");
       $$ = n;
     }
     | exp '%' exp                         {}
-    | exp EXP_OP exp                      {}
     | exp AND_OP exp                      {}
     | exp OR_OP  exp                      {}
     | exp AND_NAMED_OP exp                {}
