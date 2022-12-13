@@ -105,6 +105,5 @@ void check_type_comp(Node n1, Node n2) {
 char* generate_new_type(Node n1, Node n2) {
   char* code;
 
-  if (strcmp(n1.var.type, "long") && strcmp(n2.var.typ))
   return code;
 }

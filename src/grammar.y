@@ -7,6 +7,7 @@
 #include "node.h"
 #include "variable.h"
 #include "str_aux.h"
+#include "data.h"
 
 int yylex(void);
 void yyerror (const char *msg);
@@ -33,10 +34,10 @@ Stack* context_stack;
 	int     iValue;
   double  dValue;
 	char*   sValue;
-  Node    node;
+  Data    data;
 };
 
-%token <sValue> IDENTIFIER STRING_LITERAL BOOL_LITERAL
+%token <sValue> IDENTIFIER STRING_LITERAL BOOL_LITERAL PRIM_TYPE
 %token <iValue> INTEGER_LITERAL
 %token <dValue> DOUBLE_LITERAL
 %token FUNC VAR FOR WHILE STRUCT RETURN BREAK CONTINUE IF ELIF ELSE
@@ -53,7 +54,7 @@ Stack* context_stack;
 %right EXP_OP
 
 %type <sValue> io decs dec block cmd var_dec init_declarator_list
-%type <node> literal init_declarator exp
+%type <data>   literal exp
 
 %start prog
 
@@ -63,25 +64,19 @@ prog : { push(context_stack, "global"); } decs
      {
       pop(context_stack);
       FILE *out_file = fopen("codigo_intermediario.c", "w");
-      fprintf(out_file, "#include <math.h>\n#include \"str_aux.h\"\n#include <stdio.h>\n#include \"node.h\"\n#include \"variable.h\"\n%s", $2);
+      fprintf(out_file, "#include <math.h>\n#include \"str_aux.h\"\n#include <stdio.h>\n#include \"node.h\"\n#include \"variable.h\"\n");
      } 
 	   ;
 
 decs :
      {
-      $$ = "";
      }
      | dec decs
      {
-      char *teste = (char *)malloc(sizeof(char) * DEFAULT_SIZE);
-      concat_code(teste, $1);
-      concat_code(teste, $2);
-
-      $$ = teste;
      }
      ;
 
-cmd : dec { $$ = $1; }
+cmd : dec { }
     | if {}
     | loop {}
     | assignment ';' {}
@@ -95,13 +90,6 @@ cmd : dec { $$ = $1; }
 io : READ '(' assignable ')' { }
    | PRINT '(' exp ')'
    { 
-      char *teste = (char *)malloc(sizeof(char) * 8);
-      concat_code(teste, "printf(");
-      concat_code(teste, "alala");
-      /* concat_code(teste, $3); */
-      concat_code(teste, ");\n");
-
-      $$ = teste;
    }
    ;
 
@@ -115,10 +103,6 @@ block :
       }
       | block  cmd
       {
-        char *teste = (char *)malloc(sizeof(char) * DEFAULT_SIZE);
-        concat_code(teste, $1);
-        concat_code(teste, $2);
-        $$ = teste;
       }
       ;
 
@@ -164,20 +148,9 @@ assignment : assignable '=' exp {}
            | assignable MULT_ASSIGN_OP exp {}
            ;
 
-dec : FUNC IDENTIFIER { push(context_stack, $2); } '(' args ')' '{' block '}'
+dec : PRIM_TYPE IDENTIFIER { push(context_stack, $2); } '(' args ')' '{' block '}'
       {
         pop(context_stack);
-        char* name = get_scope(context_stack);
-        concat_code(name, $2);
-        ht_set(symbol_table, name, name);
-        char *teste = (char *)malloc(sizeof(char) * DEFAULT_SIZE);
-        concat_code(teste, "int ");
-        concat_code(teste, $2);
-        concat_code(teste, " () {\n");
-        concat_code(teste, $8);
-        concat_code(teste, "}\n");
-        
-        $$ = teste;
       }
     | STRUCT IDENTIFIER '{' struct_fields '}' {}
     | var_dec { $$ = $1;}
@@ -202,21 +175,16 @@ struct_fields : {}
 field : IDENTIFIER ';' {}
       ;
 
-var_dec : VAR init_declarator_list ';'
+var_dec : PRIM_TYPE init_declarator_list ';'
         {
           $$ = $2;
         }
-        | VAR init_declarator '=' exp ';' {
-          char* code;
-          code = cat($4.codigo, "\nNode ", $2.var.name, ";\n", create_attr_code(&$2, &$4));
-          $$ = code;
+        | PRIM_TYPE init_declarator '=' exp ';' {
         }
         ;
 
 init_declarator_list : init_declarator
                      {
-                      char *code = cat("Node ", $1.var.name, ";\n", "", "");
-                      $$ = code;
                      }
                      | init_declarator ',' init_declarator_list {}
                      ;
@@ -226,13 +194,7 @@ init_declarator : IDENTIFIER
                   char* nome_com_escopo = get_scope(context_stack);
                   concat_code(nome_com_escopo, $1);
 
-                  Node n;
-                  n.var.name = cat(nome_com_escopo, "", "", "", "");
-
-                  free(nome_com_escopo);
-
-                  ht_set(symbol_table, n.var.name, n.var.name);
-                  $$ = n;
+                  ht_set(symbol_table, nome_com_escopo, nome_com_escopo);
                 }
                 | init_declarator '[' exp ']' {}
                 ;
@@ -240,45 +202,16 @@ init_declarator : IDENTIFIER
 exp : '-' exp                         %prec U_MINUS_OP {}
     | '!' exp                         %prec U_NOT_OP   {}
     | exp '+' exp                         {
-      Node n;
-      n.left = &$1;
-      n.right = &$3;
-      n.op = "+";
-      n.codigo = cat(generate_op_code(&n), "", "", "", "");
-      $$ = n;
+      assert_types($1, $3);
     }
     | exp '-' exp                         {
-      Node n;
-      n.left = &$1;
-      n.right = &$3;
-      n.op = "-";
-      n.codigo = cat(generate_op_code(&n), "", "", "", "");
-      $$ = n;
     }
     | exp '*' exp                         {
-      Node n;
-      n.left = &$1;
-      n.right = &$3;
-      n.op = "*";
-      n.codigo = cat(generate_op_code(&n), "", "", "", "");
-      $$ = n;
     }
     | exp '/' exp
     {
-      Node n;
-      n.left = &$1;
-      n.right = &$3;
-      n.op = "/";
-      n.codigo = cat(generate_op_code(&n), "", "", "", "");
-      $$ = n;
     }
     | exp EXP_OP exp                      {
-      Node n;
-      n.left = &$1;
-      n.right = &$3;
-      n.op = "**";
-      n.codigo = cat(generate_op_code(&n), "", "", "", "");
-      $$ = n;
     }
     | exp '%' exp                         {}
     | exp AND_OP exp                      {}
@@ -330,16 +263,35 @@ access :                       {}
        | '[' exp ']' access    {}
        ;
 literal : INTEGER_LITERAL {
-          Node n;
-          n.var.type = "long";
-          n.var.value = (void*)$1;
-          generate_leaf(&n);
-          $$ = n;
+          Data d;
+          d.type = "int";
+          d.v.i = $1;
+          d.code = (char*)malloc(sizeof(char) * 100);
+          sprintf(d.code, "%d", $1);
+          $$ = d;
         }
-        | DOUBLE_LITERAL  {}
+        | DOUBLE_LITERAL  {
+          Data d;
+          d.type = "double";
+          d.v.d = $1;
+          d.code = (char*)malloc(sizeof(double) * 100);
+          sprintf(d.code, "%lf", $1);
+          $$ = d;
+        }
         | STRING_LITERAL {
+          Data d;
+          d.type = "string";
+          d.v.str = $1;
+          d.code = $1;
+          $$ = d;
         }
-        | BOOL_LITERAL    {}
+        | BOOL_LITERAL    {
+          Data d;
+          d.type = "bool";
+          d.v.str = $1;
+          d.code = $1;
+          $$ = d;
+        }
         | struct_literal  {}
         ;
 

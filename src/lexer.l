@@ -5,6 +5,7 @@
   #include "hashmap.h"
   #include "stack.h"
   #include "node.h"
+  #include "data.h"
   #include "variable.h"
   #include "str_aux.h"
   #include "y.tab.h"
@@ -49,6 +50,8 @@ length                { ADJ; return LENGTH;}
                              return DOUBLE_LITERAL; }
 (true|false)               { ADJ; yylval.sValue = strdup(yytext);
                              return BOOL_LITERAL; }
+(int|bool|double|string)   { ADJ; yylval.sValue = strdup(yytext);
+                             return PRIM_TYPE; }
 
 \+                         { ADJ; return '+'; }
 \-                         { ADJ; return '-'; }

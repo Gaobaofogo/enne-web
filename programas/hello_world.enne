@@ -1,3 +1,4 @@
-func main() {
-  var x = 5 ** 2 - 3 + 2 ;
+int main() {
+  print("Ola mundo");
+  int x = 3;
 }
