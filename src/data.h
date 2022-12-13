@@ -13,5 +13,7 @@ typedef struct Data {
 } Data;
 
 void assert_types(Data d1, Data d2);
+void assert_types_with_prim(char *type, Data d);
+char *generate_type(Data d1, Data d2);
 
 #endif // !_DATA_H_

@@ -4,7 +4,6 @@
   #include "string.h"
   #include "hashmap.h"
   #include "stack.h"
-  #include "node.h"
   #include "data.h"
   #include "variable.h"
   #include "str_aux.h"
