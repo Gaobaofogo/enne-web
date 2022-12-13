@@ -61,12 +61,13 @@ char *generate_op_code(Node *node) {
                node->var.name);
   } else if (strcmp(node->op, "**") == 0) {
     char *aux_name = aux_t_name_generator();
-    code = cat(code, "double ", aux_name, ";\n", aux_name);
-    code = cat(code, ".var.value = ",);
-    code = cat(code, "pow((", node->left->var.type, ")", node->var.name);
-    code = cat(code, ".left->var.value, (", node->right->var.type, ")",
-               node->var.name);
-    code = cat(code, node->var.name, ".var.value = (void*)", aux_name, ".var.value");
+    code = cat(code, "double ", aux_name, " = pow((", "");
+    code = cat(code, node->left->var.type, ")", node->left->var.name,
+               ".var.value");
+    code = cat(code, ", (", node->right->var.type, ")", node->right->var.name);
+    code = cat(code, ".var.value);\n", "", "", "");
+    code = cat(code, node->var.name, ".var.value = (void*)", aux_name, ";\n");
+    return code;
   }
 
   code = cat(code, ".right->var.value);\n", "", "", "");
@@ -87,5 +88,23 @@ char *create_attr_code(Node *node1, Node *node2) {
   code = cat(code, node1->var.name, ".var.value = ", node2->var.name,
              ".var.value;\n");
 
+  return code;
+}
+
+/* Se a função executou e os dois tipos não vomitaram um erro, são compatíveis*/
+void check_type_comp(Node n1, Node n2) {
+  if ((strcmp(n1.var.type, "long") && strcmp(n2.var.type, "long")
+      || strcmp(n1.var.type, "long") && strcmp(n2.var.type, "double")
+      || strcmp(n1.var.type, "double") && strcmp(n2.var.type, "long")
+      || strcmp(n1.var.type, "double") && strcmp(n2.var.type, "double"))) {
+    printf("%s e %s sao incompativeis.\n", n1.var.type, n2.var.type);
+    exit(1);
+  }
+}
+
+char* generate_new_type(Node n1, Node n2) {
+  char* code;
+
+  if (strcmp(n1.var.type, "long") && strcmp(n2.var.typ))
   return code;
 }
