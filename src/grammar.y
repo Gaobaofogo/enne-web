@@ -2,9 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "string.h"
-#include "hashmap.h"
 #include "stack.h"
-#include "variable.h"
 #include "str_aux.h"
 #include "data.h"
 #include "zhash.h"
@@ -53,7 +51,7 @@ Stack* context_stack;
 %left U_MINUS_OP U_NOT_OP
 %right EXP_OP
 
-%type <sValue> io decs dec block cmd var_dec init_declarator_list init_declarator loop while assignment if
+%type <sValue> args args_specifier reference_ampersand io decs dec block cmd var_dec init_declarator_list init_declarator loop while assignment if else
 %type <data>   literal exp assignable
 
 %start prog
@@ -64,7 +62,7 @@ prog : { push(context_stack, "global"); } decs
      {
       pop(context_stack);
       FILE *out_file = fopen("codigo_intermediario.c", "w");
-      fprintf(out_file, "#include <math.h>\n#include \"str_aux.h\"\n#include <stdio.h>\n#include \"variable.h\"\n%s", $2);
+      fprintf(out_file, "#include <math.h>\n#include <stdio.h>\n\n%s", $2);
      } 
 	   ;
 
@@ -156,9 +154,11 @@ if : IF '(' exp ')' '{' block '}' elseif else
     char *label_next = generate_goto();
     char *code = cat("if (", $3.code, ") goto ", label_true, ";\n");
     code = cat(code, "goto ", label_false, ";\n", "");
-    code = cat(code, label_true, ":\n", $6, label_false);
+    code = cat(code, label_true, ":\n", $6, "goto ");
+    code = cat(code, label_next, ";\n", label_false, "");
+    code = cat(code, ":\n", $9, "goto ", label_next);
 
-    code = cat(code, ":\n", label_next, ":\n", "");
+    code = cat(code, ";\n", label_next, ":\n", "");
     $$ = code;
    }
    ;
@@ -167,8 +167,12 @@ elseif : {}
        | ELIF '(' exp ')' '{' block '}' elseif {}
        ;
 
-else : ELSE '{' block '}' {}
-     | {}
+else : ELSE '{' block '}'
+     {
+      char *code = cat($3, "", "", "", "");
+      $$ = code;
+     }
+     | { $$ = ""; }
      ;
 
 loop : while { $$ = $1;}
@@ -220,8 +224,8 @@ assignment : assignable '=' exp
 dec : PRIM_TYPE IDENTIFIER { push(context_stack, $2); } '(' args ')' '{' block '}'
       {
         pop(context_stack);
-        char *code = cat($1, " ", $2, "() {\n", $8);
-        code = cat(code, "}\n", "", "", "");
+        char *code = cat($1, " ", $2, "(", $5);
+        code = cat(code, ") {\n", $8, "}\n", "");
 
         $$ = code;
       }
@@ -229,16 +233,44 @@ dec : PRIM_TYPE IDENTIFIER { push(context_stack, $2); } '(' args ')' '{' block '
     | var_dec { $$ = $1;}
     ;
 
-args : {}
-     | args_specifier
+args : { $$ = ""; }
+     | args_specifier {$$ = $1;}
     ;
 
-args_specifier : reference_ampersand IDENTIFIER {}
-               | args_specifier ',' reference_ampersand IDENTIFIER
+args_specifier : PRIM_TYPE reference_ampersand IDENTIFIER
+               {
+                char* nome_com_escopo = get_scope(context_stack);
+                concat_code(nome_com_escopo, $3);
+                char *code = cat($1, " ", $2, nome_com_escopo, "");
+
+                Data *d = malloc(sizeof(Data));
+                d->name = nome_com_escopo;
+                d->type = $1;
+                d->code = nome_com_escopo;
+                zhash_set(symbol_table, nome_com_escopo, (void*)d);
+                printf("%s\n", nome_com_escopo);
+                $$ = code;
+               }
+               | args_specifier ',' PRIM_TYPE reference_ampersand IDENTIFIER
+               {
+                char* nome_com_escopo = get_scope(context_stack);
+                concat_code(nome_com_escopo, $5);
+
+                char *code = cat($1, ", ", $3, " ", $4);
+                code = cat(code, nome_com_escopo, "", "", "");
+
+                Data *d = malloc(sizeof(Data));
+                d->name = nome_com_escopo;
+                d->type = $3;
+                d->code = nome_com_escopo;
+                zhash_set(symbol_table, nome_com_escopo, (void*)d);
+                printf("%s\n", nome_com_escopo);
+                $$ = code;
+               }
                ;
 
-reference_ampersand : {}
-                    | '&'
+reference_ampersand : { $$ = ""; }
+                    | '*' { $$ = cat("*", "", "", "", ""); }
                     ;
 
 struct_fields : {}
@@ -338,7 +370,14 @@ exp : '-' exp                         %prec U_MINUS_OP {
       d.code = cat("pow(", $1.code, ", ", $3.code, ")");
       $$ = d;
     }
-    | exp '%' exp                         {}
+    | exp '%' exp                         
+    {
+      assert_types($1, $3);
+      Data d;
+      d.type = generate_type($1, $3);
+      d.code = cat($1.code, " % ", $3.code, "", "");
+      $$ = d;
+    }
     | exp AND_OP exp                      
     {
       /* assert_types($1, $3); */
@@ -384,8 +423,20 @@ exp : '-' exp                         %prec U_MINUS_OP {
       d.code = cat($1.code, " <= ", $3.code, "", "");
       $$ = d;
     }
-    | exp EQ_OP exp                       {}
-    | exp DIFF_OP exp                     {}
+    | exp EQ_OP exp                       
+    {
+      Data d;
+      d.type = "bool";
+      d.code = cat($1.code, " <= ", $3.code, "", "");
+      $$ = d;
+    }
+    | exp DIFF_OP exp                     
+    {
+      Data d;
+      d.type = "bool";
+      d.code = cat($1.code, " != ", $3.code, "", "");
+      $$ = d;
+    }
     | exp CONCAT_OP exp                   {}
     | func_call                           {}
     | assignable
