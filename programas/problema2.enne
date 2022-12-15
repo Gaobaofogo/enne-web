@@ -1,11 +1,11 @@
-func main() {
-  var segundoQuarto = 0;
-  var primeiroQuarto = 0;
-  var terceiroQuarto = 0;
-  var quartoQuarto = 0;
+int main() {
+  int segundoQuarto = 0;
+  int primeiroQuarto = 0;
+  int terceiroQuarto = 0;
+  int quartoQuarto = 0;
 
   // Lê primeiro número
-  var leitura;
+  int leitura;
   read(leitura);
 
   while(leitura >= 0) {
@@ -27,19 +27,23 @@ func main() {
   }
 
   // Imprime resultados
-  print("===================");
+  print("===================\n");
   print("Primeiro intervalo:");
   print(primeiroQuarto);
+  print("\n");
 
-  print("===================");
+  print("===================\n");
   print("Segundo intervalo:");
   print(segundoQuarto);
+  print("\n");
 
-  print("===================");
+  print("===================\n");
   print("Terceiro intervalo:");
   print(terceiroQuarto);
+  print("\n");
 
-  print("===================");
+  print("===================\n");
   print("Quarto intervalo:");
   print(quartoQuarto);
+  print("\n");
 }

@@ -10,6 +10,7 @@ typedef struct Data {
   char *type;
   Value v;
   char *code;
+  char *name;
 } Data;
 
 void assert_types(Data d1, Data d2);

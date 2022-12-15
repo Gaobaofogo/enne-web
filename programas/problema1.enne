@@ -1,7 +1,8 @@
-func main() {
-    var x = 1.7;
-    var y = 5.99;
-    var c = 0;
+int main() {
+    double x = 5.0;
+    double y = 3.0;
+    int c = 2;
 
     print(x ** 2 - y + c);
+    print("\n");
 }

@@ -7,6 +7,7 @@
 #include "variable.h"
 #include "str_aux.h"
 #include "data.h"
+#include "zhash.h"
 
 int yylex(void);
 void yyerror (const char *msg);
@@ -24,7 +25,7 @@ void concat_code(char *code, char *new_code) {
 }
 
 
-ht* symbol_table;
+struct ZHashTable* symbol_table;
 Stack* context_stack;
 
 %}
@@ -52,7 +53,7 @@ Stack* context_stack;
 %left U_MINUS_OP U_NOT_OP
 %right EXP_OP
 
-%type <sValue> io decs dec block cmd var_dec init_declarator_list init_declarator
+%type <sValue> io decs dec block cmd var_dec init_declarator_list init_declarator loop while assignment if
 %type <data>   literal exp assignable
 
 %start prog
@@ -78,12 +79,20 @@ decs :
      }
      ;
 
-cmd : dec {
+cmd : dec
+    {
       $$ = $1;
     }
-    | if {}
-    | loop {}
-    | assignment ';' {}
+    | if 
+    {
+      $$ = $1;
+    }
+    | loop { $$ = $1; }
+    | assignment ';'
+    {
+      char *code = cat($1, ";\n", "", "", "");
+      $$ = code;
+    }
     | io ';' { $$ = $1; }
     | RETURN return {}
     | exp ';' {}
@@ -91,7 +100,22 @@ cmd : dec {
     | CONTINUE ';' {}
     ; 
 
-io : READ '(' assignable ')' { }
+io : READ '(' assignable ')'
+   {
+    char *type;
+
+    if (strcmp($3.type, "int") == 0) {
+      type = "d";
+    } else if (strcmp($3.type, "double") == 0) {
+      type = "lf";
+    } if (strcmp($3.type, "string") == 0) {
+      type = "s";
+    }
+
+    char *code = cat("scanf(\"%", type, "\", &", $3.code, ");\n");
+
+    $$ = code;
+   }
    | PRINT '(' exp ')'
    {
     char *type;
@@ -99,7 +123,7 @@ io : READ '(' assignable ')' { }
     if (strcmp($3.type, "int") == 0) {
       type = "d";
     } else if (strcmp($3.type, "double") == 0) {
-      type = "ld";
+      type = "lf";
     } if (strcmp($3.type, "string") == 0) {
       type = "s";
     }
@@ -125,7 +149,18 @@ block :
       }
       ;
 
-if : IF '(' exp ')' '{' block '}' elseif else {}
+if : IF '(' exp ')' '{' block '}' elseif else
+   {
+    char *label_true = generate_goto();
+    char *label_false = generate_goto();
+    char *label_next = generate_goto();
+    char *code = cat("if (", $3.code, ") goto ", label_true, ";\n");
+    code = cat(code, "goto ", label_false, ";\n", "");
+    code = cat(code, label_true, ":\n", $6, label_false);
+
+    code = cat(code, ":\n", label_next, ":\n", "");
+    $$ = code;
+   }
    ;
 
 elseif : {}
@@ -136,11 +171,21 @@ else : ELSE '{' block '}' {}
      | {}
      ;
 
-loop : while {}
+loop : while { $$ = $1;}
      | for {}
      ;
 
-while : WHILE '(' exp ')' '{' block '}' {}
+while : WHILE '(' exp ')' '{' block '}' {
+        char *label_true = generate_goto();
+        char *label_next = generate_goto();
+        char *code = cat("if (", $3.code, ") goto ", label_true, ";\n");
+        code = cat(code, "goto ", label_next, ";\n", label_true);
+        code = cat(code, ":\n", $6, "", "if (");
+        code = cat(code, $3.code, ") goto ", label_true, ";\n"); 
+
+        code = cat(code, label_next, ":\n", "", "");
+        $$ = code;
+      }
       ;
 
 for : FOR '(' for_left for_middle for_right ')' '{' block '}' {}
@@ -160,7 +205,12 @@ for_right : exp {}
           | {}
           ;
 
-assignment : assignable '=' exp {}
+assignment : assignable '=' exp
+           {
+            assert_types($1, $3);
+            char *code = cat($1.code, " = ", $3.code, "", "");
+            $$ = code;
+           }
            | assignable PLUS_ASSIGN_OP exp {}
            | assignable MINUS_ASSIGN_OP exp {}
            | assignable DIV_ASSIGN_OP exp {}
@@ -198,11 +248,28 @@ struct_fields : {}
 field : IDENTIFIER ';' {}
       ;
 
-var_dec : PRIM_TYPE init_declarator_list ';' {}
+var_dec : PRIM_TYPE init_declarator_list ';'
+        {
+          char *code = cat($1, " ", $2, ";\n", "");
+          Data *d = malloc(sizeof(Data));
+          d->name = $2;
+          d->type = $1;
+          d->code = $2;
+          zhash_set(symbol_table, $2, (void*)d);
+
+          $$ = code;
+        }
         | PRIM_TYPE init_declarator '=' exp ';' {
           assert_types_with_prim($1, $4);
+
           char *code = cat($1, " ", $2, " = ", $4.code);
           code = cat(code, ";\n", "", "", "");
+
+          Data *d = malloc(sizeof(Data));
+          d->name = $2;
+          d->type = $1;
+          d->code = $2;
+          zhash_set(symbol_table, $2, (void*)d);
 
           $$ = code;
         }
@@ -210,6 +277,7 @@ var_dec : PRIM_TYPE init_declarator_list ';' {}
 
 init_declarator_list : init_declarator
                      {
+                      $$ = $1;
                      }
                      | init_declarator ',' init_declarator_list {}
                      ;
@@ -219,7 +287,6 @@ init_declarator : IDENTIFIER
                   char* nome_com_escopo = get_scope(context_stack);
                   concat_code(nome_com_escopo, $1);
 
-                  ht_set(symbol_table, nome_com_escopo, nome_com_escopo);
                   $$ = nome_com_escopo;
                 }
                 | init_declarator '[' exp ']' {}
@@ -239,14 +306,17 @@ exp : '-' exp                         %prec U_MINUS_OP {
       d.code = cat($1.code, " + ", $3.code, "", "");
       $$ = d;
     }
-    | exp '-' exp                         {
+    | exp '-' exp                         
+    {
       assert_types($1, $3);
       Data d;
       d.type = generate_type($1, $3);
       d.code = cat($1.code, " - ", $3.code, "", "");
+
       $$ = d;
     }
-    | exp '*' exp                         {
+    | exp '*' exp                         
+    {
       assert_types($1, $3);
       Data d;
       d.type = generate_type($1, $3);
@@ -258,30 +328,70 @@ exp : '-' exp                         %prec U_MINUS_OP {
       assert_types($1, $3);
       Data d;
       d.type = generate_type($1, $3);
-      d.code = cat($1.code, " * ", $3.code, "", "");
+      d.code = cat($1.code, " / ", $3.code, "", "");
       $$ = d;
     }
     | exp EXP_OP exp                      {
       assert_types($1, $3);
       Data d;
-      d.type = generate_type($1, $3);
+      d.type = "double";
       d.code = cat("pow(", $1.code, ", ", $3.code, ")");
       $$ = d;
     }
     | exp '%' exp                         {}
-    | exp AND_OP exp                      {}
-    | exp OR_OP  exp                      {}
+    | exp AND_OP exp                      
+    {
+      /* assert_types($1, $3); */
+      Data d;
+      d.type = "bool";
+      d.code = cat($1.code, " && ", $3.code, "", "");
+      $$ = d;
+    }
+    | exp OR_OP  exp                      
+    {
+      Data d;
+      d.type = "bool";
+      d.code = cat($1.code, " || ", $3.code, "", "");
+      $$ = d;
+    }
     | exp AND_NAMED_OP exp                {}
     | exp OR_NAMED_OP  exp                {}
-    | exp '>' exp                         {}
-    | exp GTE_OP exp                      {}
-    | exp '<' exp                         {}
-    | exp LTE_OP exp                      {}
+    | exp '>' exp                         
+    {
+      Data d;
+      d.type = "bool";
+      d.code = cat($1.code, " > ", $3.code, "", "");
+      $$ = d;
+    }
+    | exp GTE_OP exp                      
+    {
+      Data d;
+      d.type = "bool";
+      d.code = cat($1.code, " >= ", $3.code, "", "");
+      $$ = d;
+    }
+    | exp '<' exp                         
+    {
+      Data d;
+      d.type = "bool";
+      d.code = cat($1.code, " < ", $3.code, "", "");
+      $$ = d;
+    }
+    | exp LTE_OP exp                      
+    {
+      Data d;
+      d.type = "bool";
+      d.code = cat($1.code, " <= ", $3.code, "", "");
+      $$ = d;
+    }
     | exp EQ_OP exp                       {}
     | exp DIFF_OP exp                     {}
     | exp CONCAT_OP exp                   {}
     | func_call                           {}
-    | assignable                          {}
+    | assignable
+    {
+      $$ = $1;
+    }
     | literal
     {
       $$ = $1;
@@ -309,17 +419,18 @@ remaining_params :                        {}
                | ',' exp remaining_params {}
                ;
 
+
 assignable : IDENTIFIER                       
-           {
-            char* nome_com_escopo = get_scope(context_stack);
-            concat_code(nome_com_escopo, $1);
+           {// TODO: ALTERAR
+            char* nome_com_escopo = cat(get_scope(context_stack), $1, "", "", "");
+            Data *d = (Data*)zhash_get(symbol_table, nome_com_escopo);
 
-            if (ht_get(symbol_table, nome_com_escopo) != NULL) {
-              $$ = nome_com_escopo;
+            if (d != NULL) {
+              $$ = *d;
+            } else {
+              printf("Variavel %s nao existe.\n", $1);
+              exit(1);
             }
-
-            printf("Variavel %s nao existe.\n", $1);
-            exit(1);
            }
            | IDENTIFIER '[' exp ']' access    {}
            | IDENTIFIER '.' IDENTIFIER access {}
@@ -381,9 +492,12 @@ struct_elem : IDENTIFIER '=' exp      {}
 %% /* Fim da segunda seção */
 
 int main (void) {
-  symbol_table = ht_create();
+  symbol_table = zcreate_hash_table();
   context_stack = createStack(300);
+
   yyparse();
+
+  zfree_hash_table(symbol_table);
   return 0;
 }
 

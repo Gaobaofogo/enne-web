@@ -34,7 +34,8 @@ char *generate_type(Data d1, Data d2) {
   if (strcmp(d1.type, "int") == 0 && strcmp(d2.type, "int") == 0) {
     return "int";
   } else if (strcmp(d1.type, "int") == 0 && strcmp(d2.type, "double") == 0
-            || strcmp(d1.type, "double") == 0 && strcmp(d2.type, "double") == 0) {
+            || strcmp(d1.type, "double") == 0 && strcmp(d2.type, "double") == 0
+            || strcmp(d1.type, "double") == 0 && strcmp(d2.type, "int") == 0) {
     return "double";
   }
 

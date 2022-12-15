@@ -1,7 +1,10 @@
 int main() {
-  int x = 5;
-  int y = 3;
-  double c = 2.0;
+  int i = 0;
 
-  print("Hello world\n");
+  while (i < 5) {
+    print("i menor que 5\n");
+    i = i + 1;
+  }
+
+  print("Terminou");
 }
